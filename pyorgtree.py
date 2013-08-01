@@ -57,7 +57,7 @@ class OrgTree(object):
         tree_start_pattern = re.compile("^\*{1,}")
         for line in data:
             if tree_start_pattern.match(line):
-                if self.level > 0:
+                if self._extract_tree_level(line) >= self.level and self.level != 0:
                     break
                 else:
                     self.level = self._extract_tree_level(line)
