@@ -90,7 +90,7 @@ class OrgTree(object):
         if self.level == 0:
             self.parent = None
         data = open(filename, 'r').readlines()
-        print "Open file"
+        #print "Open file"
         tree_start_pattern = re.compile("^\*{1,}")
         i = line_number
         while i < len(data):
@@ -98,13 +98,13 @@ class OrgTree(object):
             if tree_start_pattern.match(line):
                 new_level = self._extract_tree_level(line)
                 if new_level > self.level:
-                    print "Line match, level: ", new_level, " processed by", self.level
+                    #print "Line match, level: ", new_level, " processed by", self.level
                     new_child = OrgTree('')
                     new_child.set_parent(self)
                     new_child.set_header(line)
                     current_tree_hash = self._extract_tree_hash(line)
                     if current_tree_hash:
-                        print "Processing hash: ", current_tree_hash
+                        #print "Processing hash: ", current_tree_hash
                         self.tree_dict[current_tree_hash] = new_child
                     self.children.append(new_child)
                     continue_from  = new_child.read_from_file(filename, i+1, new_level, tree_dict=self.tree_dict)
