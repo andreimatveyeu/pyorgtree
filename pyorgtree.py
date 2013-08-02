@@ -7,8 +7,33 @@ class OrgTree(object):
     level = 0
     tree_type = None
     data = ""
+    tree_dict = dict()
+    header = ""
+
+    def get_parent(self):
+        return self.parent
+    def set_parent(self, parent):
+        self.parent = parent
+    def get_header(self):
+        return self.header
+    def set_header(self, line):
+        self.header = line
+        
+    def get_subtree_by_hash(self, subtree_hash):
+        try:
+            return self.tree_dict[subtree_hash]
+        except KeyError:
+            return None
+
+    def get_children(self):
+        return self.children
+        
+    def get_tree_dict(self):
+        return self.tree_dict
+        
     def get_data(self):
         return self.data
+        
     def _extract_tree_level(self, line):
         level = 0
         for char in line:
@@ -37,7 +62,13 @@ class OrgTree(object):
         if tree_hash:
             result = result[7:]
         return result
-        
+
+    def get_hash(self):
+        if self._has_hash(self.get_header()):
+            return self._extract_tree_hash(self.get_header())
+        else:
+            return None
+          
     def _extract_tree_hash(self, line):
         priority_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] ")
         no_priority_pattern = re.compile("\*{1,} [A-Z]{3,5} ")
@@ -48,52 +79,47 @@ class OrgTree(object):
             result = re.sub("\*{1,10} [A-Z]{3,5} ", "", line)[0:5]
         return result
         
-    def read_from_file(self, filename, line_number, level):
+    def read_from_file(self, filename, line_number, level, tree_dict=None):
+        if tree_dict:
+            self.tree_dict = tree_dict
         type_patterns = {
             'TODO' : '\*{1,} TODO ',
             'DONE' : '\*{1,} DONE ',
         }
         self.level = level
+        if self.level == 0:
+            self.parent = None
         data = open(filename, 'r').readlines()
         print "Open file"
         tree_start_pattern = re.compile("^\*{1,}")
-        for i in range(line_number, len(data)):
+        i = line_number
+        while i < len(data):
             line = data[i]
             if tree_start_pattern.match(line):
                 new_level = self._extract_tree_level(line)
-                print "Line match, level: ", new_level
-                if new_level <= self.level:  # upper or same level: parent or sibling
-                    break
-                else:
-                    new_child = OrgTree('')  # lower level: child
-                    new_child.read_from_file(filename, i+1, new_level)
+                if new_level > self.level:
+                    print "Line match, level: ", new_level, " processed by", self.level
+                    new_child = OrgTree('')
+                    new_child.set_parent(self)
+                    new_child.set_header(line)
+                    current_tree_hash = self._extract_tree_hash(line)
+                    if current_tree_hash:
+                        print "Processing hash: ", current_tree_hash
+                        self.tree_dict[current_tree_hash] = new_child
                     self.children.append(new_child)
-                    break
-                # tree_hash = self._extract_tree_hash(line)
-                # print tree_hash
-                # print self._has_hash(line)
-                # print self._has_priority(line)
-                # print self._extract_title(line)
-                # for key in type_patterns.keys():
-                #     if re.compile(type_patterns[key]).match(line):
-                #         tree_type = key
-                #         break
+                    continue_from  = new_child.read_from_file(filename, i+1, new_level, tree_dict=self.tree_dict)
+                    if not continue_from:
+                        break
+                    i = continue_from
+                else:
+                    return i
             else:
                self.data += line 
-
-            #     tree_hash = self._extract_tree_hash(line)
-            #     print tree_hash
-            #     print self._has_hash(line)
-            #     print self._has_priority(line)
-            #     print self._extract_title(line)
-            #     for key in type_patterns.keys():
-            #         if re.compile(type_patterns[key]).match(line):
-            #             tree_type = key
-            #             break
-            
+               i += 1
     def __str__(self):
         return "OrgTree(level=%d)" % self.level
         
     def __init__(self, data):
-        pass
+        self.children = []
+
 
