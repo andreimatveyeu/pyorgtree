@@ -27,7 +27,7 @@ class Header(object):
 
     def has_type(self):
         patterns = []
-        patterns.append(re.compile("\*{1,} [A-Z]{3,5}"))  # Level, keyword, priority and hash
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, priority and hash
         for pattern in patterns:
             if pattern.match(self.line):
                 return True
