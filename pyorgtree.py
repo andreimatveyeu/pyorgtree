@@ -66,7 +66,7 @@ class OrgTree(object):
     def _has_hash(self, line):
         prio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:")
         noprio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:")
-        notype_hash_pattern = re.compile("\*{1,} ")
+        notype_hash_pattern = re.compile("\*{1,} :")
         if prio_hash_pattern.match(line) or noprio_hash_pattern.match(line) or notype_hash_pattern:
             return True
         return False
