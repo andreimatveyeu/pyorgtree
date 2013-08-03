@@ -123,7 +123,7 @@ class OrgTree(object):
         if self.level == 0:
             self.parent = None
         data = open(filename, 'r').readlines()
-        tree_start_pattern = re.compile("^\*{1,}")
+        tree_start_pattern = re.compile("^\*{1,} ")
         i = line_number
         while i < len(data):
             line = data[i]
