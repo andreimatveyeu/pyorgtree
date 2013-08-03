@@ -70,6 +70,9 @@ class OrgTree(object):
             return True
         return False
 
+    def get_title(self):
+        return self._extract_title(self.get_header())
+        
     def _extract_title(self, line):
         priority = self._has_priority(line)
         tree_hash = self._has_hash(line)
