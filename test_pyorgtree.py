@@ -57,3 +57,13 @@ class TestPyOrgTree(object):
             new_tree_dict = new_tree.get_tree_dict()
             assert new_tree_dict[tree_hash].get_data() == tree_dict[tree_hash].get_data()
             assert new_tree_dict[tree_hash].get_header() == tree_dict[tree_hash].get_header()
+
+    def test_multiple(self):
+        tree = OrgTree()
+        tree.read_from_file('test_data/tree02.org', 0, 0)
+        tree_dict = tree.get_tree_dict()
+
+        assert len(tree.get_children()) == 2
+
+        assert isinstance(tree_dict['67890'], OrgTree)
+        assert tree_dict['67890'].get_title() == "et felis ultrices elementum"

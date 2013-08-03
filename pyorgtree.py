@@ -66,12 +66,13 @@ class OrgTree(object):
     def _has_hash(self, line):
         prio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:")
         noprio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:")
-        if prio_hash_pattern.match(line) or noprio_hash_pattern.match(line):
+        notype_hash_pattern = re.compile("\*{1,} ")
+        if prio_hash_pattern.match(line) or noprio_hash_pattern.match(line) or notype_hash_pattern:
             return True
         return False
 
     def get_title(self):
-        return self._extract_title(self.get_header())
+        return self._extract_title(self.get_header()[2:].strip())
         
     def _extract_title(self, line):
         priority = self._has_priority(line)
@@ -94,11 +95,14 @@ class OrgTree(object):
     def _extract_tree_hash(self, line):
         priority_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] ")
         no_priority_pattern = re.compile("\*{1,} [A-Z]{3,5} ")
+        no_type_pattern = re.compile("\*{1,} ")
         result = ""
         if priority_pattern.match(line):
             result = re.sub("\*{1,10} [A-Z]{3,5} \[\#[A-Z]\] ", "", line)[0:5]
         elif no_priority_pattern.match(line):
             result = re.sub("\*{1,10} [A-Z]{3,5} ", "", line)[0:5]
+        elif no_type_pattern.match(line):
+            result = re.sub("\*{1,} ", "", line)[0:5]
         return result
         
     def read_from_file(self, filename, line_number, level, tree_dict=None):
