@@ -135,7 +135,6 @@ class OrgTree(object):
                     new_child.set_parent(self)
                     new_child.set_header(header)
                     current_tree_hash = header.get_hash()
-                    print current_tree_hash
                     if current_tree_hash:
                         self.tree_dict[current_tree_hash] = new_child
                     self.children.append(new_child)
