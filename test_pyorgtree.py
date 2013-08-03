@@ -17,7 +17,7 @@ class TestPyOrgTree(object):
         tree.read_from_file('test_data/tree01.org', 0, 0)
 
         log(1, "Verify that first child hashes match")
-        assert tree.get_children()[0].get_hash() == '12345'
+        assert tree.get_children()[0].get_header().get_hash() == '12345'
 
         log(1, "Verify that first child is present in the tree hash map")
         tree_dict = tree.get_tree_dict()
@@ -36,7 +36,7 @@ class TestPyOrgTree(object):
         assert len(children) == 0
 
         log(1, "Verify that a leaf node has correct parent")
-        assert tree_dict['45678'].get_parent().get_hash() == '23456'
+        assert tree_dict['45678'].get_parent().get_header().get_hash() == '23456'
 
     def test_serialize(self):
         tree = OrgTree()
@@ -64,6 +64,5 @@ class TestPyOrgTree(object):
         tree_dict = tree.get_tree_dict()
 
         assert len(tree.get_children()) == 2
-
         assert isinstance(tree_dict['67890'], OrgTree)
-        assert tree_dict['67890'].get_title() == "et felis ultrices elementum"
+        assert tree_dict['67890'].get_header().get_title() == "et felis ultrices elementum"

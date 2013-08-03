@@ -2,6 +2,69 @@
 import re
 import cPickle
 
+class Header(object):
+    line = None
+    def __init__(self, line):
+        self.line = line.strip()
+        
+    def get_level(self):
+        level = 0
+        for char in self.line:
+            if char == "*":
+                level += 1
+            else:
+                break
+        return level
+
+    def has_priority(self):
+        patterns = []
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
+        patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))
+        for pattern in patterns:
+            if pattern.match(self.line):
+                return True
+        return False
+
+    def has_type(self):
+        patterns = []
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5}"))  # Level, keyword, priority and hash
+        for pattern in patterns:
+            if pattern.match(self.line):
+                return True
+        return False
+        
+    def has_hash(self):
+        patterns = []
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
+        patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
+        for pattern in patterns:
+            if pattern.match(self.line):
+                return True
+        return False
+
+    def get_title(self):
+        if self.has_hash():
+            return re.sub('^.{1,}[a-z0-9]{5}: ', '', self.line)
+        elif self.has_priority():
+            return re.sub('^.{1,}\[#[A-Z]\] ', '', self.line)
+        elif self.has_type():
+            return re.sub('^\*{1,} [A-Z]{3,5} ', '', self.line)
+        else:
+            return re.sub('^\*{1,} ', '', self.line)
+
+    def get_hash(self):
+        patterns = []
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))  # Level, keyword, priority and hash
+        patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, and hash
+        patterns.append(re.compile("\*{1,} ")) # Level, hash
+        if self.has_hash():
+            for pattern in patterns:
+                if pattern.match(self.line):
+                    return pattern.sub('', self.line)[0:5]
+        else:
+            return None
+        
 class OrgTree(object):
     parent = None
     children = []
@@ -35,8 +98,8 @@ class OrgTree(object):
         self.parent = parent
     def get_header(self):
         return self.header
-    def set_header(self, line):
-        self.header = line
+    def set_header(self, header):
+        self.header = header
         
     def get_subtree_by_hash(self, subtree_hash):
         try:
@@ -52,66 +115,10 @@ class OrgTree(object):
         
     def get_data(self):
         return self.data
-        
-    def _extract_tree_level(self, line):
-        level = 0
-        for char in line:
-            if char == "*":
-                level += 1
-        return level
-
-    def _has_priority(self, line):
-        return re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] ").match(line) != None
-        
-    def _has_hash(self, line):
-        prio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:")
-        noprio_hash_pattern = re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:")
-        notype_hash_pattern = re.compile("\*{1,} :")
-        if prio_hash_pattern.match(line) or noprio_hash_pattern.match(line) or notype_hash_pattern:
-            return True
-        return False
-
-    def get_title(self):
-        return self._extract_title(self.get_header()[2:].strip())
-        
-    def _extract_title(self, line):
-        priority = self._has_priority(line)
-        tree_hash = self._has_hash(line)
-        result = ""
-        if priority:
-            result = re.sub("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] ", "", line)
-        else:
-            result = re.sub("\*{1,} [A-Z]{3,5} ", "", line)
-        if tree_hash:
-            result = result[7:]
-        return result
-
-    def get_hash(self):
-        if self._has_hash(self.get_header()):
-            return self._extract_tree_hash(self.get_header())
-        else:
-            return None
-          
-    def _extract_tree_hash(self, line):
-        priority_pattern = re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] ")
-        no_priority_pattern = re.compile("\*{1,} [A-Z]{3,5} ")
-        no_type_pattern = re.compile("\*{1,} ")
-        result = ""
-        if priority_pattern.match(line):
-            result = re.sub("\*{1,10} [A-Z]{3,5} \[\#[A-Z]\] ", "", line)[0:5]
-        elif no_priority_pattern.match(line):
-            result = re.sub("\*{1,10} [A-Z]{3,5} ", "", line)[0:5]
-        elif no_type_pattern.match(line):
-            result = re.sub("\*{1,} ", "", line)[0:5]
-        return result
-        
+                                  
     def read_from_file(self, filename, line_number, level, tree_dict=None):
         if tree_dict:
             self.tree_dict = tree_dict
-        type_patterns = {
-            'TODO' : '\*{1,} TODO ',
-            'DONE' : '\*{1,} DONE ',
-        }
         self.level = level
         if self.level == 0:
             self.parent = None
@@ -121,12 +128,14 @@ class OrgTree(object):
         while i < len(data):
             line = data[i]
             if tree_start_pattern.match(line):
-                new_level = self._extract_tree_level(line)
+                header = Header(line)
+                new_level = header.get_level()
                 if new_level > self.level:
                     new_child = OrgTree()
                     new_child.set_parent(self)
-                    new_child.set_header(line)
-                    current_tree_hash = self._extract_tree_hash(line)
+                    new_child.set_header(header)
+                    current_tree_hash = header.get_hash()
+                    print current_tree_hash
                     if current_tree_hash:
                         self.tree_dict[current_tree_hash] = new_child
                     self.children.append(new_child)
