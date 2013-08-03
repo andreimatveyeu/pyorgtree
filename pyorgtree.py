@@ -72,7 +72,7 @@ class OrgTree(object):
     tree_type = None
     data = ""
     tree_dict = dict()
-    header = ""
+    header = None
 
     def pickle_load(self, filename):
         try:
