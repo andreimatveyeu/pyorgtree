@@ -77,7 +77,6 @@ class Header(object):
     def has_timestamp(self):
         patterns = []
         patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  # Level, keyword, timestamp
-        #patterns.append(re.compile("\*{1,} \[....-..-.. ... ..:..\] "))  # Level, keyword, timestamp
         for pattern in patterns:
             if pattern.match(self.line):
                 return True
@@ -128,7 +127,7 @@ class Header(object):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))  # Level, keyword, priority and hash
         patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))  # Level, priority and hash
-        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\] "))  # Level, keyword, timestamp
+        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\] "))  # Level, keyword, timestamp
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, and hash
         patterns.append(re.compile("\*{1,} ")) # Level, hash
         if self.has_hash():

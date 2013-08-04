@@ -88,6 +88,15 @@ class TestHeader(object):
         assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
         assert header.get_title() == "hello world"
 
+        string = "***** [2011-10-14 Fri] iddww: test hello world"
+        header = Header(string)
+        assert header.has_hash()
+        assert header.has_timestamp()
+        assert header.get_timestamp(string=True) == "[2011-10-14 Fri]"
+        assert header.get_timestamp(string=False) == datetime.datetime(2011, 10, 14, 0, 0)
+        assert header.get_hash() == 'iddww'
+        assert header.get_title() == 'test hello world'
+        
     def test_header_tags(self):
         string = "** LOG simple title? :Tag1:Tag2:Tag3:"
         header = Header(string)
