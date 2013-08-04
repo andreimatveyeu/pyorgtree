@@ -2,8 +2,71 @@
 from pyorgtree import *
 import tempfile
 import os
+import datetime
 from logging import debug, log, info
 
+class TestHeader(object):
+    def test_title_only(self):
+        string = "** title test header"
+        header = Header(string)
+        assert not header.has_hash()
+        assert header.get_hash() == None
+        assert header.get_type() == None
+        assert header.get_title() == "title test header"
+        assert header.get_level() == 2
+        assert header.get_priority() == None
+
+    def test_header_type_hash_title(self):
+        string = "*** TODO 12345: test header"
+        header = Header(string)
+        assert header.has_hash()
+        assert header.get_hash() == "12345"
+        assert header.get_type() == "TODO"
+        assert header.get_title() == "test header"
+        assert header.get_level() == 3
+
+    def test_header_type_priority_hash_title(self):
+        string = "* LOG [#A] z2389: TEST header"
+        header = Header(string)
+        assert header.has_hash()
+        assert header.get_hash() == "z2389"
+        assert header.get_type() == "LOG"
+        assert header.get_title() == "TEST header"
+        assert header.get_level() == 1
+        assert header.get_priority() == "A"
+
+    def test_header_priority_hash_title(self):
+        string = "** [#A] z2389: TEST header"
+        header = Header(string)
+        assert header.has_hash()
+        assert header.get_hash() == "z2389"
+        assert header.get_type() == None
+        assert header.get_title() == "TEST header"
+        assert header.get_level() == 2
+        assert header.get_priority() == "A"
+
+    def test_header_priority_title(self):
+        string = "** [#A] simple header"
+        header = Header(string)
+        assert not header.has_hash()
+        assert header.get_hash() == None
+        assert header.get_type() == None
+        assert header.get_title() == "simple header"
+        assert header.get_level() == 2
+        assert header.get_priority() == "A"
+
+    def test_header_timestamp(self):
+        string = "** [1999-12-31 Wed 08:00] "
+        header = Header(string)
+        assert header.has_timestamp()        
+        string = "** [1999-12-31 Wed 08:00]"
+        header = Header(string)
+        assert header.has_timestamp()        
+        string = "** LOG [1999-12-31 Wed 08:00]"
+        header = Header(string)
+        assert header.has_timestamp()        
+        assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
+        
 class TestPyOrgTree(object):
     _temp_file = None
     def teardown(self):

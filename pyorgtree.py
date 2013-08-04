@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import re
 import cPickle
+import datetime
 
 class Header(object):
     line = None
@@ -19,12 +20,19 @@ class Header(object):
     def has_priority(self):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
-        patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))
+        patterns.append(re.compile("\*{1,} \[[#][A-Z]\] "))
         for pattern in patterns:
             if pattern.match(self.line):
                 return True
         return False
 
+    def get_priority(self):
+        if self.has_priority():
+            prio = re.sub(".{1,} (?P<prio>\[#[A-Z]\]) .{0,}", "\g<prio>", self.line)
+            return prio[2:3]
+        else:
+            return None
+        
     def has_type(self):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, priority and hash
@@ -32,10 +40,18 @@ class Header(object):
             if pattern.match(self.line):
                 return True
         return False
+
+    def get_type(self):
+        if self.has_type():
+            tree_type = re.sub("\*{1,} (?P<type>[A-Z]{3,5}) .{0,}", "\g<type>", self.line)
+            return tree_type
+        else:
+            return None
         
     def has_hash(self):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
+        patterns.append(re.compile("\*{1,} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, priority and hash
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
         patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
         for pattern in patterns:
@@ -43,6 +59,27 @@ class Header(object):
                 return True
         return False
 
+    def has_timestamp(self):
+        patterns = []
+        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]($|.{0,})"))  # Level, keyword, timestamp
+        #patterns.append(re.compile("\*{1,} \[....-..-.. ... ..:..\] "))  # Level, keyword, timestamp
+        for pattern in patterns:
+            if pattern.match(self.line):
+                return True
+        return False        
+
+    def get_timestamp(self):
+        if self.has_timestamp():
+            time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]).{0,}", "\g<time>", self.line)
+            year = int(time_string[1:5])
+            month = int(time_string[6:8])
+            day = int(time_string[9:11])
+            hour = int(time_string[16:18])
+            minute = int(time_string[19:21])
+            return datetime.datetime(year, month, day, hour, minute)
+        else:
+            return None
+        
     def get_title(self):
         if self.has_hash():
             return re.sub('^.{1,}[a-z0-9]{5}: ', '', self.line)
@@ -56,6 +93,7 @@ class Header(object):
     def get_hash(self):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))  # Level, keyword, priority and hash
+        patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))  # Level, priority and hash
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, and hash
         patterns.append(re.compile("\*{1,} ")) # Level, hash
         if self.has_hash():
