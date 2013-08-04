@@ -102,12 +102,7 @@ class Header(object):
         result = self.line
         if self.has_tags():
             tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
-            try:
-                print tag_string
-                result = re.sub(tag_string, "", result)
-            except Exception:
-                print result
-                raise Exception("Regexp error")
+            result = re.sub(tag_string, "", result)
         if self.has_hash():
             tree_hash = self.get_hash()
             result = re.sub(tree_hash + ':', '', result)
@@ -146,6 +141,7 @@ class OrgTree(object):
     tree_type = None
     data = ""
     tree_dict = dict()
+    tag_dict = dict()
     header = None
 
     def pickle_load(self, filename):
@@ -186,13 +182,24 @@ class OrgTree(object):
         
     def get_tree_dict(self):
         return self.tree_dict
+
+    def get_tag_dict(self):
+        return self.tag_dict
+
+    def get_trees_by_tag(self, tag):
+        try:
+            return self.tag_dict[tag]
+        except KeyError:
+            return []
         
     def get_data(self):
         return self.data
                                   
-    def read_from_file(self, filename, line_number, level, tree_dict=None):
+    def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
         if tree_dict:
             self.tree_dict = tree_dict
+        if tag_dict:
+            self.tag_dict = tag_dict
         self.level = level
         if self.level == 0:
             self.parent = None
@@ -211,8 +218,13 @@ class OrgTree(object):
                     current_tree_hash = header.get_hash()
                     if current_tree_hash:
                         self.tree_dict[current_tree_hash] = new_child
+                    if header.has_tags():
+                        for tag in header.get_tags():
+                            if tag not in self.tag_dict:
+                                self.tag_dict[tag] = []
+                            self.tag_dict[tag].append(new_child)
                     self.children.append(new_child)
-                    continue_from  = new_child.read_from_file(filename, i+1, new_level, tree_dict=self.tree_dict)
+                    continue_from  = new_child.read_from_file(filename, i+1, new_level, tree_dict=self.tree_dict, tag_dict=self.tag_dict)
                     if not continue_from:
                         break
                     i = continue_from

@@ -86,6 +86,12 @@ class TestHeader(object):
         assert header.has_tags()
         assert header.get_tags() == ['Tag1', 'Tag2', 'Tag3']
         assert header.get_title() == "simple title?"
+
+        string = "** LOG simple title?\t:Tag1:"
+        header = Header(string)
+        assert header.has_tags()
+        assert header.get_tags() == ['Tag1']
+        assert header.get_title() == "simple title?"
         
         string = "** LOG :tag1:tag2:tag3"
         header = Header(string)
@@ -153,3 +159,24 @@ class TestPyOrgTree(object):
         assert len(tree.get_children()) == 2
         assert isinstance(tree_dict['67890'], OrgTree)
         assert tree_dict['67890'].get_header().get_title() == "et felis ultrices elementum"
+
+    def test_tags(self):
+        tree = OrgTree()
+        tree.read_from_file('test_data/tree03.org', 0, 0)
+        tree_dict = tree.get_tree_dict()
+
+        tag1_trees = tree.get_trees_by_tag('tag1')
+        assert len(tag1_trees) == 2
+        assert tag1_trees[0].get_header().get_hash() == '12345'
+        assert tag1_trees[1].get_header().get_hash() == '38399'
+
+        tree_dict['38400'].get_header().get_tags() == ['tag2', 'tag4']
+
+        tag4_trees = tree.get_trees_by_tag('tag4')
+        assert len(tag4_trees) == 2
+        assert tag4_trees[0].get_header().get_hash() == '23456'
+        assert tag4_trees[1].get_header().get_hash() == '38400'
+        
+        tag5_trees = tree.get_trees_by_tag('tag5')
+        assert tag5_trees == []
+        
