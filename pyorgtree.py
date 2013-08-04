@@ -103,6 +103,7 @@ class Header(object):
         if self.has_tags():
             tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
             try:
+                print tag_string
                 result = re.sub(tag_string, "", result)
             except Exception:
                 print result

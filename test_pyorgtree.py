@@ -81,11 +81,11 @@ class TestHeader(object):
         assert header.get_title() == "hello world"
 
     def test_header_tags(self):
-        string = "** LOG simple title :Tag1:Tag2:Tag3:"
+        string = "** LOG simple title? :Tag1:Tag2:Tag3:"
         header = Header(string)
         assert header.has_tags()
         assert header.get_tags() == ['Tag1', 'Tag2', 'Tag3']
-        assert header.get_title() == "simple title"
+        assert header.get_title() == "simple title?"
         
         string = "** LOG :tag1:tag2:tag3"
         header = Header(string)
