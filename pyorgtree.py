@@ -102,7 +102,11 @@ class Header(object):
         result = self.line
         if self.has_tags():
             tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
-            result = re.sub(tag_string, "", result)
+            try:
+                result = re.sub(tag_string, "", result)
+            except Exception:
+                print result
+                raise Exception("Regexp error")
         if self.has_hash():
             tree_hash = self.get_hash()
             result = re.sub(tree_hash + ':', '', result)
