@@ -53,7 +53,7 @@ class Header(object):
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
         patterns.append(re.compile("\*{1,} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, priority and hash
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
-        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]($|.{0,}) [a-z0-9]:"))  # Level, keyword, timestamp
+        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]($|.{0,}) [a-z0-9]{5}:"))  # Level, keyword, timestamp
         patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
         for pattern in patterns:
             if pattern.match(self.line):
