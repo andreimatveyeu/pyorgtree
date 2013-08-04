@@ -79,6 +79,17 @@ class TestHeader(object):
         assert header.has_timestamp()        
         assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
         assert header.get_title() == "hello world"
+
+    def test_header_tags(self):
+        string = "** LOG simple title :Tag1:Tag2:Tag3:"
+        header = Header(string)
+        assert header.has_tags()
+        assert header.get_tags() == ['Tag1', 'Tag2', 'Tag3']
+        assert header.get_title() == "simple title"
+        
+        string = "** LOG :tag1:tag2:tag3"
+        header = Header(string)
+        assert not header.has_tags()
         
 class TestPyOrgTree(object):
     _temp_file = None

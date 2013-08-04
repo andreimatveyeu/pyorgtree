@@ -17,6 +17,20 @@ class Header(object):
                 break
         return level
 
+    def has_tags(self):
+        patterns = []
+        patterns.append(re.compile(".{0,}:[a-zA-Z0-9\:]{1,}:$"))
+        for pattern in patterns:
+            if pattern.match(self.line):
+                return True
+        return False
+
+    def get_tags(self):
+        if self.has_tags():
+            tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", self.line)
+            return tag_string[1:-1].split(":")
+        return []
+        
     def has_priority(self):
         patterns = []
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
@@ -86,13 +100,12 @@ class Header(object):
         
     def get_title(self):
         result = self.line
+        if self.has_tags():
+            tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
+            result = re.sub(tag_string, "", result)
         if self.has_hash():
             tree_hash = self.get_hash()
-            try:
-                result = re.sub(tree_hash + ':', '', result)
-            except Exception:
-                print result
-                raise Exception("Regexp error")
+            result = re.sub(tree_hash + ':', '', result)
         if self.has_priority():
             priority = self.get_priority()
             result = re.sub('\[#%s\]' % priority , '', result)
