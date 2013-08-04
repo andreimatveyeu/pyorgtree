@@ -27,7 +27,7 @@ class Header(object):
 
     def get_tags(self):
         if self.has_tags():
-            tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", self.line)
+            tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", self.line)
             return tag_string[1:-1].split(":")
         return []
         
@@ -101,7 +101,7 @@ class Header(object):
     def get_title(self):
         result = self.line
         if self.has_tags():
-            tag_string = re.sub(".{0,} (?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
+            tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
             try:
                 print tag_string
                 result = re.sub(tag_string, "", result)
