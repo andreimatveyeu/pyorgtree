@@ -59,13 +59,21 @@ class TestHeader(object):
         string = "** [1999-12-31 Wed 08:00] "
         header = Header(string)
         assert header.has_timestamp()        
+
         string = "** [1999-12-31 Wed 08:00]"
         header = Header(string)
         assert header.has_timestamp()        
+
+        string = "** [1999-12-31 Wed]"
+        header = Header(string)
+        assert header.has_timestamp()        
+        assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 0, 0)
+        
         string = "** LOG [1999-12-31 Wed 08:00]"
         header = Header(string)
         assert header.has_timestamp()        
         assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
+
         string = "** LOG [1999-12-31 Wed 08:00] hello world"
         header = Header(string)
         assert header.has_timestamp()        

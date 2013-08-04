@@ -67,7 +67,7 @@ class Header(object):
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
         patterns.append(re.compile("\*{1,} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, priority and hash
         patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
-        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]($|.{0,}) [a-z0-9]{5}:"))  # Level, keyword, timestamp
+        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,}) [a-z0-9]{5}:"))  # Level, keyword, timestamp
         patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
         for pattern in patterns:
             if pattern.match(self.line):
@@ -76,7 +76,7 @@ class Header(object):
 
     def has_timestamp(self):
         patterns = []
-        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]($|.{0,})"))  # Level, keyword, timestamp
+        patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  # Level, keyword, timestamp
         #patterns.append(re.compile("\*{1,} \[....-..-.. ... ..:..\] "))  # Level, keyword, timestamp
         for pattern in patterns:
             if pattern.match(self.line):
@@ -85,13 +85,17 @@ class Header(object):
 
     def get_timestamp(self, string=False):
         if self.has_timestamp():
-            time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]).{0,}", "\g<time>", self.line)
+            time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]).{0,}", "\g<time>", self.line)
             if not string:
                 year = int(time_string[1:5])
                 month = int(time_string[6:8])
                 day = int(time_string[9:11])
-                hour = int(time_string[16:18])
-                minute = int(time_string[19:21])
+                try:
+                    hour = int(time_string[16:18])
+                    minute = int(time_string[19:21])
+                except ValueError:
+                    hour = 0
+                    minute = 0
                 return datetime.datetime(year, month, day, hour, minute)
             else:
                 return time_string
