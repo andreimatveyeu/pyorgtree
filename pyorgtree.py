@@ -88,7 +88,11 @@ class Header(object):
         result = self.line
         if self.has_hash():
             tree_hash = self.get_hash()
-            result = re.sub(tree_hash + ':', '', result)
+            try:
+                result = re.sub(tree_hash + ':', '', result)
+            except Exception:
+                print result
+                raise Exception("Regexp error")
         if self.has_priority():
             priority = self.get_priority()
             result = re.sub('\[#%s\]' % priority , '', result)
