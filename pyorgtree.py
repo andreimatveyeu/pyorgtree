@@ -68,27 +68,39 @@ class Header(object):
                 return True
         return False        
 
-    def get_timestamp(self):
+    def get_timestamp(self, string=False):
         if self.has_timestamp():
             time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3} [0-2][0-9]:[0-5][0-9]\]).{0,}", "\g<time>", self.line)
-            year = int(time_string[1:5])
-            month = int(time_string[6:8])
-            day = int(time_string[9:11])
-            hour = int(time_string[16:18])
-            minute = int(time_string[19:21])
-            return datetime.datetime(year, month, day, hour, minute)
+            if not string:
+                year = int(time_string[1:5])
+                month = int(time_string[6:8])
+                day = int(time_string[9:11])
+                hour = int(time_string[16:18])
+                minute = int(time_string[19:21])
+                return datetime.datetime(year, month, day, hour, minute)
+            else:
+                return time_string
         else:
             return None
         
     def get_title(self):
+        result = self.line
         if self.has_hash():
-            return re.sub('^.{1,}[a-z0-9]{5}: ', '', self.line)
-        elif self.has_priority():
-            return re.sub('^.{1,}\[#[A-Z]\] ', '', self.line)
-        elif self.has_type():
-            return re.sub('^\*{1,} [A-Z]{3,5} ', '', self.line)
-        else:
-            return re.sub('^\*{1,} ', '', self.line)
+            tree_hash = self.get_hash()
+            result = re.sub(tree_hash + ':', '', result)
+        if self.has_priority():
+            priority = self.get_priority()
+            result = re.sub('\[#%s\]' % priority , '', result)
+        if self.has_type():
+            tree_type = self.get_type()
+            result = re.sub(tree_type, '', result)
+        if self.has_timestamp():
+            timestamp = self.get_timestamp(string=True)
+            timestamp = re.sub("\[", "\\[", timestamp)
+            timestamp = re.sub("\]", "\\]", timestamp)
+            result = re.sub(timestamp, '', result)
+        result = result[self.get_level():]
+        return result.strip()
 
     def get_hash(self):
         patterns = []

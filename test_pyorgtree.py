@@ -66,6 +66,11 @@ class TestHeader(object):
         header = Header(string)
         assert header.has_timestamp()        
         assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
+        string = "** LOG [1999-12-31 Wed 08:00] hello world"
+        header = Header(string)
+        assert header.has_timestamp()        
+        assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
+        assert header.get_title() == "hello world"
         
 class TestPyOrgTree(object):
     _temp_file = None
