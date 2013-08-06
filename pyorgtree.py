@@ -136,6 +136,40 @@ class Header(object):
                     return pattern.sub('', self.line)[0:5]
         else:
             return None
+
+class TreeData(object):
+    data = None
+    properties_start = None
+    properties_end = None
+    properties_dict = None    
+    def __init__(self, data):
+        self.data = data
+        self.properties_start = re.compile(".{0,}:PROPERTIES:")
+        self.properties_end = re.compile(".{0,}:END:")
+        lines = self.data.split('\n')
+        properties_open = False
+        property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
+        self.properties_dict = dict()
+        for line in lines:
+            if self.properties_start.match(line):
+                properties_open = True
+            elif self.properties_end.match(line):
+                break
+            else:
+                if properties_open:
+                    if property_match.match(line):
+                        prop = re.sub(".{0,}:(?P<prop>[a-zA-Z0-9]{1,100}):.{0,}$", "\g<prop>", line)
+                        value = re.sub(".*:(?P<val>.{1,})$", "\g<val>", line).strip()
+                        self.properties_dict[prop] = value
+        
+    def get_data(self):
+        return self.data
+        
+    def has_properties(self):
+        return len(self.properties_dict.keys()) > 0
+                
+    def get_properties(self):
+        return self.properties_dict
         
 class OrgTree(object):
     parent = None
@@ -196,8 +230,14 @@ class OrgTree(object):
             return []
         
     def get_data(self):
-        return self.data
-                                  
+        return TreeData(self.data).get_data()
+
+    def has_properties(self):
+        return TreeData(self.data).has_properties()
+
+    def get_properties(self):
+        return TreeData(self.data).get_properties()
+        
     def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
         if tree_dict:
             self.tree_dict = tree_dict
@@ -236,6 +276,7 @@ class OrgTree(object):
             else:
                self.data += line 
                i += 1
+        
     def __str__(self):
         return "OrgTree(level=%d)" % self.level
         

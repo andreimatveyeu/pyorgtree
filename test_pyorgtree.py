@@ -113,6 +113,22 @@ class TestHeader(object):
         string = "** LOG :tag1:tag2:tag3"
         header = Header(string)
         assert not header.has_tags()
+
+class TestTreeData(object):
+    def test_properties(self):
+        tree = OrgTree()
+        tree.read_from_file('test_data/tree04.org', 0, 0)
+        tree_dict = tree.get_tree_dict()
+
+        assert tree_dict['38399'].has_properties()
+        prop_dict = tree_dict['38399'].get_properties()
+        assert len(prop_dict.keys()) == 2
+        assert prop_dict['property1'] == 'value1'
+        assert prop_dict['property2'] == 'value2'
+
+        assert not tree_dict['38400'].has_properties()
+        prop_dict = tree_dict['38400'].get_properties()
+        assert len(prop_dict.keys()) == 0
         
 class TestPyOrgTree(object):
     _temp_file = None
