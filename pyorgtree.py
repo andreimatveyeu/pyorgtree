@@ -180,7 +180,8 @@ class OrgTree(object):
     tree_dict = dict()
     tag_dict = dict()
     header = None
-
+    properties = None
+    
     def pickle_load(self, filename):
         try:
             inp = open(filename, 'rb')
@@ -233,10 +234,14 @@ class OrgTree(object):
         return TreeData(self.data).get_data()
 
     def has_properties(self):
-        return TreeData(self.data).has_properties()
+        if self.properties == None:
+            self.properties = TreeData(self.data).get_properties()
+        return len(self.properties.keys()) > 0
 
     def get_properties(self):
-        return TreeData(self.data).get_properties()
+        if self.properties == None:
+            self.properties = TreeData(self.data).get_properties()
+        return self.properties
         
     def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
         if tree_dict:
