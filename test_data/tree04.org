@@ -8,6 +8,7 @@
    iaculis porttitor ut in nisl. Morbi gravida sem vel tellus aliquam
 
 ** 38400: Fullam exorbitus scribit				  :tag2:tag4:
+   SCHEDULED: <2013-10-21 Mon>
     iaculis porttitor ut in nisl. Morbi gravida sem vel tellus aliquam
     accumsan. Maecenas consectetur porta magna at interdum.
    velit. Nullam sollicitudin suscipit urna ut placerat. Nam massa velit,

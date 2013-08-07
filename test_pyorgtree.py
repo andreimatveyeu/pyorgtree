@@ -130,6 +130,15 @@ class TestTreeData(object):
         prop_dict = tree_dict['38400'].get_properties()
         assert len(prop_dict.keys()) == 0
         
+    def test_scheduled(self):
+        tree = OrgTree()
+        tree.read_from_file('test_data/tree04.org', 0, 0)
+        tree_dict = tree.get_tree_dict()
+
+        assert not tree_dict['38399'].is_scheduled()
+        assert tree_dict['38400'].is_scheduled()
+        assert tree_dict['38400'].is_scheduled() == datetime.datetime(2013, 10, 21, 0, 0)
+        
 class TestPyOrgTree(object):
     _temp_file = None
     def teardown(self):

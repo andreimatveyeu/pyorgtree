@@ -139,22 +139,29 @@ class Header(object):
 
 class TreeData(object):
     data = None
-    properties_start = None
-    properties_end = None
     properties_dict = None    
+    scheduled = None
+    
     def __init__(self, data):
         self.data = data
-        self.properties_start = re.compile(".{0,}:PROPERTIES:")
-        self.properties_end = re.compile(".{0,}:END:")
+        properties_start = re.compile(".{0,}:PROPERTIES:")
+        properties_end = re.compile(".{0,}:END:")
         lines = self.data.split('\n')
         properties_open = False
         property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
+        schedule_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].{0,}$")
         self.properties_dict = dict()
         for line in lines:
-            if self.properties_start.match(line):
+            if properties_start.match(line):
                 properties_open = True
-            elif self.properties_end.match(line):
+            elif properties_end.match(line):
                 break
+            elif schedule_match.match(line):
+                time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
+                year = int(time_string[0:4])
+                month = int(time_string[5:7])
+                day = int(time_string[8:10])
+                self.scheduled = datetime.datetime(year, month, day, 0, 0)
             else:
                 if properties_open:
                     if property_match.match(line):
@@ -170,7 +177,9 @@ class TreeData(object):
                 
     def get_properties(self):
         return self.properties_dict
-        
+    def is_scheduled(self):
+        return self.scheduled
+
 class OrgTree(object):
     parent = None
     children = []
@@ -233,6 +242,9 @@ class OrgTree(object):
     def get_data(self):
         return TreeData(self.data).get_data()
 
+    def is_scheduled(self):
+        return TreeData(self.data).is_scheduled()
+        
     def has_properties(self):
         if self.properties == None:
             self.properties = TreeData(self.data).get_properties()
