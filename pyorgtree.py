@@ -141,7 +141,8 @@ class TreeData(object):
     data = None
     properties_dict = None    
     scheduled = None
-    
+    deadline = None
+        
     def __init__(self, data):
         self.data = data
         properties_start = re.compile(".{0,}:PROPERTIES:")
@@ -151,6 +152,7 @@ class TreeData(object):
         property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
         schedule_date_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4}>.{0,}$")
         schedule_datetime_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4} [0-2][0-9]:[0-5][0-9]>.{0,}$")
+        deadline_match = re.compile(".{0,}DEADLINE: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4}>.{0,}$")
         self.properties_dict = dict()
         for line in lines:
             if properties_start.match(line):
@@ -171,6 +173,12 @@ class TreeData(object):
                 hour = int(time_string[11:13])
                 minute = int(time_string[14:16])
                 self.scheduled = datetime.datetime(year, month, day, hour, minute)
+            elif deadline_match.match(line):
+                time_string = re.sub(".{0,}DEADLINE: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
+                year = int(time_string[0:4])
+                month = int(time_string[5:7])
+                day = int(time_string[8:10])
+                self.deadline = datetime.date(year, month, day)
             else:
                 if properties_open:
                     if property_match.match(line):
@@ -186,9 +194,14 @@ class TreeData(object):
                 
     def get_properties(self):
         return self.properties_dict
+        
     def is_scheduled(self):
         return self.scheduled
-
+    def has_deadline(self):
+        return self.deadline != None
+    def get_deadline(self):
+        return self.deadline
+        
 class OrgTree(object):
     parent = None
     children = []
@@ -253,7 +266,13 @@ class OrgTree(object):
 
     def is_scheduled(self):
         return TreeData(self.data).is_scheduled()
+
+    def has_deadline(self):
+        return TreeData(self.data).has_deadline()
         
+    def get_deadline(self):
+        return TreeData(self.data).get_deadline()
+
     def has_properties(self):
         if self.properties == None:
             self.properties = TreeData(self.data).get_properties()

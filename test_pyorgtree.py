@@ -141,7 +141,16 @@ class TestTreeData(object):
 
         assert tree_dict['38401'].is_scheduled()
         assert tree_dict['38401'].is_scheduled() == datetime.datetime(2013, 10, 25, 15, 0)
-        
+
+    def test_deadline(self):
+        tree = OrgTree()
+        tree.read_from_file('test_data/tree04.org', 0, 0)
+        tree_dict = tree.get_tree_dict()
+
+        assert not tree_dict['38401'].has_deadline()
+        assert tree_dict['38402'].has_deadline()
+        assert tree_dict['38402'].get_deadline() == datetime.date(2013, 11, 30)
+
 class TestPyOrgTree(object):
     _temp_file = None
     def teardown(self):
