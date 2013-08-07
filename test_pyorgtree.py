@@ -138,6 +138,9 @@ class TestTreeData(object):
         assert not tree_dict['38399'].is_scheduled()
         assert tree_dict['38400'].is_scheduled()
         assert tree_dict['38400'].is_scheduled() == datetime.datetime(2013, 10, 21, 0, 0)
+
+        assert tree_dict['38401'].is_scheduled()
+        assert tree_dict['38401'].is_scheduled() == datetime.datetime(2013, 10, 25, 15, 0)
         
 class TestPyOrgTree(object):
     _temp_file = None

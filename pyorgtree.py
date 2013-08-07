@@ -149,19 +149,28 @@ class TreeData(object):
         lines = self.data.split('\n')
         properties_open = False
         property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
-        schedule_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].{0,}$")
+        schedule_date_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4}>.{0,}$")
+        schedule_datetime_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4} [0-2][0-9]:[0-5][0-9]>.{0,}$")
         self.properties_dict = dict()
         for line in lines:
             if properties_start.match(line):
                 properties_open = True
             elif properties_end.match(line):
                 break
-            elif schedule_match.match(line):
+            elif schedule_date_match.match(line):
                 time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
                 year = int(time_string[0:4])
                 month = int(time_string[5:7])
                 day = int(time_string[8:10])
                 self.scheduled = datetime.datetime(year, month, day, 0, 0)
+            elif schedule_datetime_match.match(line):
+                time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{0,4} (?P<time>[0-2][0-9]:[0-5][0-9])>.{0,}$", "\g<date> \g<time>", line)
+                year = int(time_string[0:4])
+                month = int(time_string[5:7])
+                day = int(time_string[8:10])
+                hour = int(time_string[11:13])
+                minute = int(time_string[14:16])
+                self.scheduled = datetime.datetime(year, month, day, hour, minute)
             else:
                 if properties_open:
                     if property_match.match(line):
