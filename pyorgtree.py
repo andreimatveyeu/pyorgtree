@@ -137,6 +137,48 @@ class Header(object):
 		else:
 			return None
 
+class Schedule(object):
+	schedule_line = None
+	has_repeater = None
+	date = None
+	datetime = None
+	schedule_date_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3}>.{0,}$")
+	schedule_datetime_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3} [0-2][0-9]:[0-5][0-9]>.{0,}$")
+
+	def __init__(self, schedule_line):
+		self.schedule_line = schedule_line
+		if self.schedule_date_match.match(self.schedule_line):
+			self.date = self._extract_date(self.schedule_line)
+		elif self.schedule_datetime_match.match(self.schedule_line):
+			self.datetime = self._extract_datetime(self.schedule_line)
+		else:
+			raise Exception("Can't parse line: %s" % self.schedule_line)
+
+	def _extract_date(self, line):
+		time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
+		year = int(time_string[0:4])
+		month = int(time_string[5:7])
+		day = int(time_string[8:10])
+		return datetime.date(year, month, day)
+
+	def _extract_datetime(self, line):
+		time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{3} (?P<time>[0-2][0-9]:[0-5][0-9])>.{0,}$", "\g<date> \g<time>", line)
+		year = int(time_string[0:4])
+		month = int(time_string[5:7])
+		day = int(time_string[8:10])
+		hour = int(time_string[11:13])
+		minute = int(time_string[14:16])
+		return datetime.datetime(year, month, day, hour, minute)
+
+	def has_datetime(self):
+		return self.datetime != None
+	def has_date(self):
+		return self.date != None
+	def get_date(self):
+		return self.date
+	def get_datetime(self):
+		return self.datetime
+
 class TreeData(object):
 	data = None
 	properties_dict = None
@@ -166,7 +208,7 @@ class TreeData(object):
 				day = int(time_string[8:10])
 				self.scheduled = datetime.datetime(year, month, day, 0, 0)
 			elif schedule_datetime_match.match(line):
-				time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{0,4} (?P<time>[0-2][0-9]:[0-5][0-9])>.{0,}$", "\g<date> \g<time>", line)
+				time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{3} (?P<time>[0-2][0-9]:[0-5][0-9])>.{0,}$", "\g<date> \g<time>", line)
 				year = int(time_string[0:4])
 				month = int(time_string[5:7])
 				day = int(time_string[8:10])
