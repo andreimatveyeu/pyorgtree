@@ -156,17 +156,30 @@ class TestSchedule(object):
 		line = "SCHEDULED: <2013-09-20 Fri>"
 		schedule = Schedule(line)
 
-		assert schedule.has_date()
-		assert not schedule.has_datetime()
-		assert schedule.get_date() == datetime.date(2013, 9, 20)
+		assert schedule.has_date_only()
+		assert schedule.get_date() == datetime.datetime(2013, 9, 20, 0, 0)
 
 	def test_schedule_datetime(self):
 		line = "SCHEDULED: <2013-09-20 Fri 15:05>"
 		schedule = Schedule(line)
 
-		assert not schedule.has_date()
-		assert schedule.has_datetime()
+		assert not schedule.has_date_only()
 		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 15, 5)
+
+	def test_schedule_repeater(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 +1d>"
+		schedule = Schedule(line)
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "+1d"
+		assert schedule.get_repeat_interval() == (1, "d")
+		assert schedule.has_overdue_repeater()
+
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 ++5y>"
+		schedule = Schedule(line)
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "++5y"
+		assert schedule.get_repeat_interval() == (5, "y")
+		assert not schedule.has_overdue_repeater()
 
 class TestPyOrgTree(object):
 	_temp_file = None
