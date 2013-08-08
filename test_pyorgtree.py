@@ -135,12 +135,12 @@ class TestTreeData(object):
 		tree.read_from_file('test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
-		assert not tree_dict['38399'].is_scheduled()
-		assert tree_dict['38400'].is_scheduled()
-		assert tree_dict['38400'].is_scheduled() == datetime.datetime(2013, 10, 21, 0, 0)
+		assert not tree_dict['38399'].has_schedule()
+		assert tree_dict['38400'].has_schedule()
+		assert tree_dict['38400'].get_schedule().get_datetime() == datetime.datetime(2013, 10, 21, 0, 0)
 
-		assert tree_dict['38401'].is_scheduled()
-		assert tree_dict['38401'].is_scheduled() == datetime.datetime(2013, 10, 25, 15, 0)
+		assert tree_dict['38401'].has_schedule()
+		assert tree_dict['38401'].get_schedule().get_datetime() == datetime.datetime(2013, 10, 25, 15, 0)
 
 	def test_deadline(self):
 		tree = OrgTree()
@@ -149,7 +149,7 @@ class TestTreeData(object):
 
 		assert not tree_dict['38401'].has_deadline()
 		assert tree_dict['38402'].has_deadline()
-		assert tree_dict['38402'].get_deadline() == datetime.date(2013, 11, 30)
+		assert tree_dict['38402'].get_deadline().get_datetime() == datetime.datetime(2013, 11, 30, 0, 0)
 
 class TestSchedule(object):
 	def test_schedule_date(self):
@@ -157,7 +157,7 @@ class TestSchedule(object):
 		schedule = Schedule(line)
 
 		assert schedule.has_date_only()
-		assert schedule.get_date() == datetime.datetime(2013, 9, 20, 0, 0)
+		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 0, 0)
 
 	def test_schedule_datetime(self):
 		line = "SCHEDULED: <2013-09-20 Fri 15:05>"
@@ -180,6 +180,21 @@ class TestSchedule(object):
 		assert schedule.get_repeater() == "++5y"
 		assert schedule.get_repeat_interval() == (5, "y")
 		assert not schedule.has_overdue_repeater()
+
+class TestDeadline(object):
+	def test_deadline_date(self):
+		line = "DEADLINE: <2013-09-20 Fri>"
+		deadline = Deadline(line)
+
+		assert deadline.has_date_only()
+		assert deadline.get_datetime() == datetime.datetime(2013, 9, 20, 0, 0)
+
+	def test_deadline_datetime(self):
+		line = "DEADLINE: <2013-09-20 Fri 15:05>"
+		deadline = Deadline(line)
+
+		assert not deadline.has_date_only()
+		assert deadline.get_datetime() == datetime.datetime(2013, 9, 20, 15, 5)
 
 class TestPyOrgTree(object):
 	_temp_file = None

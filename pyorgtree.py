@@ -142,19 +142,22 @@ class Schedule(object):
 	has_repeater = None
 	datetime = None
 	has_dateonly = None
-	schedule_date_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3}.{0,}$")
-	schedule_datetime_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3} [0-2][0-9]:[0-5][0-9].{0,}$")
+	keyword = "SCHEDULED"
+	schedule_date_match = None
+	schedule_datetime_match = None
 	schedule_repeater_match = re.compile(".{1,} [\+]{1,2}[0-9]{1,4}[dwmy]")
 	repeater = None
 	repeat_interval = None
 
 	def __init__(self, schedule_line):
+		self.schedule_date_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3}.{0,}$" % self.keyword)
+		self.schedule_datetime_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3} [0-2][0-9]:[0-5][0-9].{0,}$" % self.keyword)
 		self.schedule_line = schedule_line
 		if self.schedule_datetime_match.match(self.schedule_line):
 			self.datetime = self._extract_datetime(self.schedule_line)
 			self.has_dateonly = False
 		elif self.schedule_date_match.match(self.schedule_line):
-			self.date = self._extract_date(self.schedule_line)
+			self.datetime = self._extract_date(self.schedule_line)
 			self.has_dateonly = True
 		else:
 			raise Exception("Can't parse line: %s" % self.schedule_line)
@@ -166,14 +169,14 @@ class Schedule(object):
 		return repeater
 
 	def _extract_date(self, line):
-		time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
+		time_string = re.sub(".{0,}%s: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$" % self.keyword, "\g<date>", line)
 		year = int(time_string[0:4])
 		month = int(time_string[5:7])
 		day = int(time_string[8:10])
 		return datetime.datetime(year, month, day, 0, 0)
 
 	def _extract_datetime(self, line):
-		time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{3} (?P<time>[0-2][0-9]:[0-5][0-9]).{0,}$", "\g<date> \g<time>", line)
+		time_string = re.sub(".{0,}%s: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{3} (?P<time>[0-2][0-9]:[0-5][0-9]).{0,}$" % self.keyword, "\g<date> \g<time>", line)
 		year = int(time_string[0:4])
 		month = int(time_string[5:7])
 		day = int(time_string[8:10])
@@ -206,16 +209,16 @@ class Schedule(object):
 		else:
 			return None
 
-	def get_date(self):
-		return self.date
-
 	def get_datetime(self):
 		return self.datetime
+
+class Deadline(Schedule):
+	keyword = "DEADLINE"
 
 class TreeData(object):
 	data = None
 	properties_dict = None
-	scheduled = None
+	schedule = None
 	deadline = None
 
 	def __init__(self, data):
@@ -225,35 +228,18 @@ class TreeData(object):
 		lines = self.data.split('\n')
 		properties_open = False
 		property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
-		schedule_date_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4}>.{0,}$")
-		schedule_datetime_match = re.compile(".{0,}SCHEDULED: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4} [0-2][0-9]:[0-5][0-9]>.{0,}$")
-		deadline_match = re.compile(".{0,}DEADLINE: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{0,4}>.{0,}$")
+		schedule_match = re.compile(".{0,}SCHEDULED: .{1,}$")
+		deadline_match = re.compile(".{0,}DEADLINE: .{1,}$")
 		self.properties_dict = dict()
 		for line in lines:
 			if properties_start.match(line):
 				properties_open = True
 			elif properties_end.match(line):
 				break
-			elif schedule_date_match.match(line):
-				time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
-				year = int(time_string[0:4])
-				month = int(time_string[5:7])
-				day = int(time_string[8:10])
-				self.scheduled = datetime.datetime(year, month, day, 0, 0)
-			elif schedule_datetime_match.match(line):
-				time_string = re.sub(".{0,}SCHEDULED: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]) [a-zA-Z]{3} (?P<time>[0-2][0-9]:[0-5][0-9])>.{0,}$", "\g<date> \g<time>", line)
-				year = int(time_string[0:4])
-				month = int(time_string[5:7])
-				day = int(time_string[8:10])
-				hour = int(time_string[11:13])
-				minute = int(time_string[14:16])
-				self.scheduled = datetime.datetime(year, month, day, hour, minute)
+			elif schedule_match.match(line):
+				self.schedule = Schedule(line)
 			elif deadline_match.match(line):
-				time_string = re.sub(".{0,}DEADLINE: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$", "\g<date>", line)
-				year = int(time_string[0:4])
-				month = int(time_string[5:7])
-				day = int(time_string[8:10])
-				self.deadline = datetime.date(year, month, day)
+				self.deadline = Deadline(line)
 			else:
 				if properties_open:
 					if property_match.match(line):
@@ -270,8 +256,10 @@ class TreeData(object):
 	def get_properties(self):
 		return self.properties_dict
 
-	def is_scheduled(self):
-		return self.scheduled
+	def has_schedule(self):
+		return self.schedule != None
+	def get_schedule(self):
+		return self.schedule
 	def has_deadline(self):
 		return self.deadline != None
 	def get_deadline(self):
@@ -342,10 +330,13 @@ class OrgTree(object):
 			self.data = TreeData(self.raw_data)
 		return self.data.get_data()
 
-	def is_scheduled(self):
+	def has_schedule(self):
 		if self.data == None:
 			self.data = TreeData(self.raw_data)
-		return self.data.is_scheduled()
+		return self.data.has_schedule()
+	def get_schedule(self):
+		if self.has_schedule():
+			return self.data.get_schedule()
 
 	def has_deadline(self):
 		if self.data == None:
