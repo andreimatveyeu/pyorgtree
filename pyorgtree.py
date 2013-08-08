@@ -283,7 +283,7 @@ class TreeData(object):
 	def get_deadline(self):
 		return self.deadline
 
-class OrgTree(Tree):
+class OrgTree(Node):
 	level = 0
 	tree_type = None
 	raw_data = ""
