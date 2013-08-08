@@ -3,6 +3,7 @@ import re
 import datetime
 import os
 import cPickle
+from tree import *
 
 class Header(object):
 	line = None
@@ -282,9 +283,7 @@ class TreeData(object):
 	def get_deadline(self):
 		return self.deadline
 
-class OrgTree(object):
-	parent = None
-	children = []
+class OrgTree(Tree):
 	level = 0
 	tree_type = None
 	raw_data = ""
@@ -312,10 +311,6 @@ class OrgTree(object):
 		except IOError:
 			return False
 
-	def get_parent(self):
-		return self.parent
-	def set_parent(self, parent):
-		self.parent = parent
 	def get_header(self):
 		return self.header
 	def set_header(self, header):
@@ -326,9 +321,6 @@ class OrgTree(object):
 			return self.tree_dict[subtree_hash]
 		except KeyError:
 			return None
-
-	def get_children(self):
-		return self.children
 
 	def get_tree_dict(self):
 		return self.tree_dict
@@ -420,10 +412,6 @@ class OrgTree(object):
 
 	def __str__(self):
 		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
-	def __getitem__(self, item_index):
-		return self.children[item_index]
-	def __init__(self):
-		self.children = []
 
 class OrgTreeWriter(object):
 	orgtree = None
