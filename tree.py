@@ -1,17 +1,13 @@
-class TreeIterator(object):
-	tree = None
-	previous_node = None
-	next_node = None
-	def __init__(self, tree):
-		self.tree = tree
-	def has_previous(self):
-		return previous_node != None
-	def has_next(self):
-		return next_node != None
-
 class Node(object):
 	parent = None
 	children = []
+	def __iter__(self):
+		for child in self.children:
+			for item in child:
+				yield item
+		yield self
+	def add_child(self, new_child):
+	    self.children.append(new_child)
 	def has_children(self):
 	    return len(self.children) > 0
 
@@ -29,3 +25,4 @@ class Node(object):
 
 	def __getitem__(self, item_index):
 		return self.children[item_index]
+
