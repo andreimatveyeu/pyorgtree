@@ -1,10 +1,13 @@
 #!/usr/bin/python
 import re
-import cPickle
 import datetime
+import os
+import cPickle
 
 class Header(object):
 	line = None
+	title = None
+
 	def __init__(self, line):
 		self.line = line.strip()
 
@@ -102,26 +105,27 @@ class Header(object):
 			return None
 
 	def get_title(self):
-		result = self.line
-		if self.has_tags():
-			tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
-			result = re.sub(tag_string, "", result)
-		if self.has_hash():
-			tree_hash = self.get_hash()
-			result = re.sub(tree_hash + ':', '', result)
-		if self.has_priority():
-			priority = self.get_priority()
-			result = re.sub('\[#%s\]' % priority , '', result)
-		if self.has_type():
-			tree_type = self.get_type()
-			result = re.sub(tree_type, '', result)
-		if self.has_timestamp():
-			timestamp = self.get_timestamp(string=True)
-			timestamp = re.sub("\[", "\\[", timestamp)
-			timestamp = re.sub("\]", "\\]", timestamp)
-			result = re.sub(timestamp, '', result)
-		result = result[self.get_level():]
-		return result.strip()
+		if self.title == None:
+			result = self.line
+			if self.has_tags():
+				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
+				result = re.sub(tag_string, "", result)
+			if self.has_hash():
+				tree_hash = self.get_hash()
+				result = re.sub(tree_hash + ':', '', result)
+			if self.has_priority():
+				priority = self.get_priority()
+				result = re.sub('\[#%s\]' % priority , '', result)
+			if self.has_type():
+				tree_type = self.get_type()
+				result = re.sub(tree_type, '', result)
+			if self.has_timestamp():
+				timestamp = self.get_timestamp(string=True)
+				timestamp = re.sub("\[", "\\[", timestamp)
+				timestamp = re.sub("\]", "\\]", timestamp)
+				result = re.sub(timestamp, '', result)
+			self.title = result[self.get_level():].strip()
+		return self.title
 
 	def get_hash(self):
 		patterns = []
@@ -415,7 +419,25 @@ class OrgTree(object):
 			   i += 1
 
 	def __str__(self):
-		return "OrgTree(level=%d)" % self.level
-
+		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
+	def __getitem__(self, item_index):
+		return self.children[item_index]
 	def __init__(self):
 		self.children = []
+
+class OrgTreeWriter(object):
+	orgtree = None
+	def __init__(self, orgtree):
+		assert isinstance(orgtree, OrgTree)
+		self.orgtree = orgtree
+
+	def write(self, filename):
+		tree = self.orgtree
+		out = open(filename, 'w')
+		for _ in range(tree.get_header().get_level()):
+			out.write("*")
+		out.write(" ")
+		out.write(self.orgtree.get_header().get_title())
+		out.write(os.linesep)
+		out.write(self.orgtree.get_data())
+		out.close()
