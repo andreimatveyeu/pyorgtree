@@ -288,42 +288,15 @@ class OrgTree(Node):
 	tree_type = None
 	raw_data = ""
 	data = None
-	tree_dict = dict()
 	tag_dict = dict()
 	header = None
 	properties = None
 
-	def pickle_load(self, filename):
-		try:
-			inp = open(filename, 'rb')
-			self = cPickle.load(inp)
-			inp.close()
-			return True
-		except IOError:
-			return False
-
-	def pickle_dump(self, filename):
-		try:
-			out = open(filename, 'wb')
-			cPickle.dump(self, out)
-			out.close()
-			return True
-		except IOError:
-			return False
-
 	def get_header(self):
 		return self.header
+		
 	def set_header(self, header):
 		self.header = header
-
-	def get_subtree_by_hash(self, subtree_hash):
-		try:
-			return self.tree_dict[subtree_hash]
-		except KeyError:
-			return None
-
-	def get_tree_dict(self):
-		return self.tree_dict
 
 	def get_tag_dict(self):
 		return self.tag_dict
@@ -371,6 +344,75 @@ class OrgTree(Node):
 			self.properties = self.data.get_properties()
 		return self.properties
 
+	def read_from_file(self, filename, line_number, level, tag_dict=None):
+		if tag_dict:
+			self.tag_dict = tag_dict
+		self.level = level
+		if self.level == 0:
+			self.parent = None
+		data = open(filename, 'r').readlines()
+		tree_start_pattern = re.compile("^\*{1,} ")
+		i = line_number
+		while i < len(data):
+			line = data[i]
+			if tree_start_pattern.match(line):
+				header = Header(line)
+				new_level = header.get_level()
+				if new_level > self.level:
+					new_child = OrgTree()
+					new_child.set_parent(self)
+					new_child.set_header(header)
+					if header.has_tags():
+						for tag in header.get_tags():
+							if tag not in self.tag_dict:
+								self.tag_dict[tag] = []
+							self.tag_dict[tag].append(new_child)
+					self.add_child(new_child)
+					continue_from  = new_child.read_from_file(filename, i+1, new_level, tag_dict=self.tag_dict)
+					if not continue_from:
+						break
+					i = continue_from
+				else:
+					return i
+			else:
+			   self.raw_data += line
+			   i += 1
+
+	def __str__(self):
+		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
+
+class HashedOrgTree(OrgTree):
+	tree_dict = None
+	
+	def __init__(self):
+		super(HashedOrgTree, self).__init__()
+		self.tree_dict = dict()
+		
+	def get_subtree_by_hash(self, subtree_hash):
+		try:
+			return self.tree_dict[subtree_hash]
+		except KeyError:
+			return None
+	def get_tree_dict(self):
+		return self.tree_dict
+		
+	def pickle_load(self, filename):
+		try:
+			inp = open(filename, 'rb')
+			self = cPickle.load(inp)
+			inp.close()
+			return True
+		except IOError:
+			return False
+
+	def pickle_dump(self, filename):
+		try:
+			out = open(filename, 'wb')
+			cPickle.dump(self, out)
+			out.close()
+			return True
+		except IOError:
+			return False
 	def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
 		if tree_dict:
 			self.tree_dict = tree_dict
@@ -388,7 +430,7 @@ class OrgTree(Node):
 				header = Header(line)
 				new_level = header.get_level()
 				if new_level > self.level:
-					new_child = OrgTree()
+					new_child = HashedOrgTree()
 					new_child.set_parent(self)
 					new_child.set_header(header)
 					current_tree_hash = header.get_hash()
@@ -409,10 +451,7 @@ class OrgTree(Node):
 			else:
 			   self.raw_data += line
 			   i += 1
-
-	def __str__(self):
-		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
-
+		
 class OrgTreeWriter(object):
 	orgtree = None
 	def __init__(self, orgtree):
@@ -429,3 +468,4 @@ class OrgTreeWriter(object):
 		out.write(os.linesep)
 		out.write(self.orgtree.get_data())
 		out.close()
+

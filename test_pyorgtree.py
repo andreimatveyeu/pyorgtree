@@ -236,7 +236,7 @@ class TestPyOrgTree(object):
 			self._temp_file = None
 
 	def test_parse(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree01.org', 0, 0)
 
 		log(1, "Verify that first child hashes match")
@@ -262,7 +262,7 @@ class TestPyOrgTree(object):
 		assert tree_dict['45678'].get_parent().get_header().get_hash() == '23456'
 
 	def test_serialize(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree01.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
@@ -271,9 +271,10 @@ class TestPyOrgTree(object):
 		tree.pickle_dump(self._temp_file)
 
 		log(1, "Loading tree from file: %s" % self._temp_file)
-		new_tree = OrgTree()
+		new_tree = HashedOrgTree()
 		new_tree.pickle_load(self._temp_file)
-
+		print tree.get_tree_dict().keys()
+		print new_tree.get_tree_dict().keys()
 		assert tree.get_tree_dict().keys() == new_tree.get_tree_dict().keys()
 		for tree_hash in tree.get_tree_dict().keys():
 			log(1, "Comparing trees: %s " % tree_hash)
@@ -282,7 +283,7 @@ class TestPyOrgTree(object):
 			assert new_tree_dict[tree_hash].get_header() == tree_dict[tree_hash].get_header()
 
 	def test_multiple(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree02.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
@@ -291,7 +292,7 @@ class TestPyOrgTree(object):
 		assert tree_dict['67890'].get_header().get_title() == "et felis ultrices elementum"
 
 	def test_tags(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree03.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
