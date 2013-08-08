@@ -143,30 +143,34 @@ class Schedule(object):
 	datetime = None
 	has_dateonly = None
 	keyword = "SCHEDULED"
-	schedule_date_match = None
-	schedule_datetime_match = None
-	schedule_repeater_match = re.compile(".{1,} [\+]{1,2}[0-9]{1,4}[dwmy]")
 	repeater = None
 	repeat_interval = None
 
 	def __init__(self, schedule_line):
-		self.schedule_date_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3}.{0,}$" % self.keyword)
-		self.schedule_datetime_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3} [0-2][0-9]:[0-5][0-9].{0,}$" % self.keyword)
+		schedule_datetime_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3} [0-2][0-9]:[0-5][0-9].{0,}$" % self.keyword)
+		schedule_date_match = re.compile(".{0,}%s: <[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9] [a-zA-Z]{3}.{0,}$" % self.keyword)
+		schedule_repeater_match = re.compile(".{1,} [\+]{1,2}[0-9]{1,4}[dwmy]")
+		schedule_delay_match = re.compile(".{1,} [\-]{1,2}[0-9]{1,4}[dwmy]")
 		self.schedule_line = schedule_line
-		if self.schedule_datetime_match.match(self.schedule_line):
+		if schedule_datetime_match.match(self.schedule_line):
 			self.datetime = self._extract_datetime(self.schedule_line)
 			self.has_dateonly = False
-		elif self.schedule_date_match.match(self.schedule_line):
+		elif schedule_date_match.match(self.schedule_line):
 			self.datetime = self._extract_date(self.schedule_line)
 			self.has_dateonly = True
 		else:
 			raise Exception("Can't parse line: %s" % self.schedule_line)
-		if self.schedule_repeater_match.match(self.schedule_line):
+		if schedule_repeater_match.match(self.schedule_line):
 			self.repeater = self._extract_repeater(self.schedule_line)
+		if schedule_delay_match.match(self.schedule_line):
+			self.delay = self._extract_delay(self.schedule_line)
 
 	def _extract_repeater(self, line):
 		repeater = re.sub(".{1,} (?P<repeater>[\+]{1,2}[0-9]{1,4}[dwmy]).{1,}", "\g<repeater>", line)
 		return repeater
+	def _extract_delay(self, line):
+		delay = re.sub(".{1,} (?P<repeater>[\-]{1,2}[0-9]{1,4}[dwmy]).{1,}", "\g<repeater>", line)
+		return delay
 
 	def _extract_date(self, line):
 		time_string = re.sub(".{0,}%s: <(?P<date>[0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]).{0,}$" % self.keyword, "\g<date>", line)
@@ -190,6 +194,10 @@ class Schedule(object):
 		return self.repeater != None
 	def get_repeater(self):
 		return self.repeater
+	def has_delay(self):
+		return self.delay != None
+	def get_delay(self):
+		return self.delay
 	def has_overdue_repeater(self):
 		if self.has_repeater():
 			if re.compile("\+[0-9]").match(self.get_repeater()):
@@ -198,16 +206,21 @@ class Schedule(object):
 				return False
 		else:
 			return False
-
 	def get_repeat_interval(self):
 		if self.repeat_interval == None and self.has_repeater():
 			repeater = self.get_repeater()
-			interval = re.sub(".(?P<num>[0-9]{1,4}).{1,}", "\g<num>", repeater)
+			interval = re.sub("\+{1,2}(?P<num>[0-9]{1,4}).{1,}", "\g<num>", repeater)
 			interval = int(interval)
 			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", repeater)
 			return (interval, unit)
 		else:
 			return None
+	def get_delay_interval(self):
+		if self.has_delay():
+			interval = re.sub("[-]{1,2}(?P<num>[0-9]{1,4}).{1,}", "\g<num>", self.delay)
+			interval = int(interval)
+			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", self.delay)
+		return (interval, unit)
 
 	def get_datetime(self):
 		return self.datetime

@@ -181,6 +181,38 @@ class TestSchedule(object):
 		assert schedule.get_repeat_interval() == (5, "y")
 		assert not schedule.has_overdue_repeater()
 
+	def test_schedule_delay(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 -1d>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "-1d"
+		assert schedule.get_delay_interval() == (1, "d")
+
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 --3w>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "--3w"
+		assert schedule.get_delay_interval() == (3, "w")
+
+	def test_schedule_repeater_and_delay(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 +10m -5w>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "-5w"
+		assert schedule.get_delay_interval() == (5, "w")
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "+10m"
+		assert schedule.get_repeat_interval() == (10, "m")
+
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 --30d ++2m>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "--30d"
+		assert schedule.get_delay_interval() == (30, "d")
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "++2m"
+		assert schedule.get_repeat_interval() == (2, "m")
+
 class TestDeadline(object):
 	def test_deadline_date(self):
 		line = "DEADLINE: <2013-09-20 Fri>"
