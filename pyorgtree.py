@@ -399,7 +399,7 @@ class OrgTree(Node):
 							if tag not in self.tag_dict:
 								self.tag_dict[tag] = []
 							self.tag_dict[tag].append(new_child)
-					self.children.append(new_child)
+					self.add_child(new_child)
 					continue_from  = new_child.read_from_file(filename, i+1, new_level, tree_dict=self.tree_dict, tag_dict=self.tag_dict)
 					if not continue_from:
 						break
