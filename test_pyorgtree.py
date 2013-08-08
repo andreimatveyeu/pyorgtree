@@ -116,7 +116,7 @@ class TestHeader(object):
 
 class TestTreeData(object):
 	def test_properties(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
@@ -131,7 +131,7 @@ class TestTreeData(object):
 		assert len(prop_dict.keys()) == 0
 
 	def test_scheduled(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
@@ -143,7 +143,7 @@ class TestTreeData(object):
 		assert tree_dict['38401'].get_schedule().get_datetime() == datetime.datetime(2013, 10, 25, 15, 0)
 
 	def test_deadline(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
@@ -319,7 +319,7 @@ class TestTreeWriter(object):
 			self._temp_file = None
 
 	def test_write_read_simple(self):
-		tree = OrgTree()
+		tree = HashedOrgTree()
 		tree.read_from_file('test_data/tree05.org', 0, 0)
 		tw = OrgTreeWriter(tree[0])
 		_, self._temp_file = tempfile.mkstemp()

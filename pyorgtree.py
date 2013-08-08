@@ -382,11 +382,9 @@ class OrgTree(Node):
 		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
 
 class HashedOrgTree(OrgTree):
-	tree_dict = None
-	
+	tree_dict = dict()
 	def __init__(self):
 		super(HashedOrgTree, self).__init__()
-		self.tree_dict = dict()
 		
 	def get_subtree_by_hash(self, subtree_hash):
 		try:
