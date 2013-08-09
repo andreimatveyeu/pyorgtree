@@ -213,6 +213,16 @@ class TestSchedule(object):
 		assert schedule.get_repeater() == "++2m"
 		assert schedule.get_repeat_interval() == (2, "m")
 
+class TestOrgTree(object):
+	def test_read_from_file(self):
+		tree = OrgTree()
+		tree.read_from_file('test_data/tree00.org', 0, 0)
+		assert tree[1][0].get_header().get_title() == "Lorem ipsum dolor sit amet"
+		assert len(tree[1][0].get_children()) == 3
+		assert tree[1][1].get_header().get_title() == "interdum in, laoreet ut nisl"
+		assert tree[1][3].get_header().get_title() == "Fullam exorbitus scribit"
+		assert tree[1][1][1].get_header().get_title() == "Ut ut dolor et felis ultrices"
+
 class TestDeadline(object):
 	def test_deadline_date(self):
 		line = "DEADLINE: <2013-09-20 Fri>"
@@ -228,7 +238,7 @@ class TestDeadline(object):
 		assert not deadline.has_date_only()
 		assert deadline.get_datetime() == datetime.datetime(2013, 9, 20, 15, 5)
 
-class TestPyOrgTree(object):
+class TestHashedOrgTree(object):
 	_temp_file = None
 	def teardown(self):
 		if self._temp_file:
@@ -315,7 +325,7 @@ class TestTreeWriter(object):
 	_temp_file = None
 	def teardown(self):
 		if self._temp_file:
-			#os.unlink(self._temp_file)
+			os.unlink(self._temp_file)
 			self._temp_file = None
 
 	def test_write_read_simple(self):

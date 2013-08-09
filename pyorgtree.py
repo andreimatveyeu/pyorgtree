@@ -381,7 +381,7 @@ class OrgTree(Node):
 	def __str__(self):
 		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
 
-class SerializableTree():
+class PickleSerializableOrgTree():
 	def pickle_load(self, filename):
 		try:
 			inp = open(filename, 'rb')
@@ -400,7 +400,11 @@ class SerializableTree():
 		except IOError:
 			return False
 
-class HashedOrgTree(OrgTree, SerializableTree):
+class TextSerializableOrgTree():
+	def to_string(self):
+		return ""
+
+class HashedOrgTree(OrgTree, PickleSerializableOrgTree, TextSerializableOrgTree):
 	tree_dict = dict()
 	def __init__(self):
 		super(HashedOrgTree, self).__init__()
