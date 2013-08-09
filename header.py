@@ -52,7 +52,7 @@ class Header(object):
 
 	def has_type(self):
 		patterns = []
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, priority and hash
+		patterns.append(re.compile("\*{1,} [A-Z]{3,5} ")) 
 		for pattern in patterns:
 			if pattern.match(self.line):
 				return True
@@ -65,21 +65,9 @@ class Header(object):
 		else:
 			return None
 
-	def has_hash(self):
-		patterns = []
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
-		patterns.append(re.compile("\*{1,} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, priority and hash
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
-		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,}) [a-z0-9]{5}:"))  # Level, keyword, timestamp
-		patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
-		for pattern in patterns:
-			if pattern.match(self.line):
-				return True
-		return False
-
 	def has_timestamp(self):
 		patterns = []
-		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  # Level, keyword, timestamp
+		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
 		for pattern in patterns:
 			if pattern.match(self.line):
 				return True
@@ -110,6 +98,54 @@ class Header(object):
 			if self.has_tags():
 				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
 				result = re.sub(tag_string, "", result)
+			if self.has_priority():
+				priority = self.get_priority()
+				result = re.sub('\[#%s\]' % priority , '', result)
+			if self.has_type():
+				tree_type = self.get_type()
+				result = re.sub(tree_type, '', result)
+			if self.has_timestamp():
+				timestamp = self.get_timestamp(string=True)
+				timestamp = re.sub("\[", "\\[", timestamp)
+				timestamp = re.sub("\]", "\\]", timestamp)
+				result = re.sub(timestamp, '', result)
+			self.title = result[self.get_level():].strip()
+		return self.title
+
+
+class HashedHeader(Header):
+	def get_hash(self):
+		patterns = []
+		patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))  # Level, keyword, priority and hash
+		patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))  # Level, priority and hash
+		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\] "))  # Level, keyword, timestamp
+		patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, and hash
+		patterns.append(re.compile("\*{1,} ")) # Level, hash
+		if self.has_hash():
+			for pattern in patterns:
+				if pattern.match(self.line):
+					return pattern.sub('', self.line)[0:5]
+		else:
+			return None
+
+	def has_hash(self):
+		patterns = []
+		patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, keyword, priority and hash
+		patterns.append(re.compile("\*{1,} \[\#[A-Z]\] [a-z0-9]{5}:"))  # Level, priority and hash
+		patterns.append(re.compile("\*{1,} [A-Z]{3,5} [a-z0-9]{5}:"))  # Level, keyword, and hash
+		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,}) [a-z0-9]{5}:"))  # Level, keyword, timestamp
+		patterns.append(re.compile("\*{1,} [a-z0-9]{5}:")) # Level, hash
+		for pattern in patterns:
+			if pattern.match(self.line):
+				return True
+		return False
+		
+	def get_title(self):
+		if self.title == None:
+			result = self.line
+			if self.has_tags():
+				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
+				result = re.sub(tag_string, "", result)
 			if self.has_hash():
 				tree_hash = self.get_hash()
 				result = re.sub(tree_hash + ':', '', result)
@@ -126,17 +162,3 @@ class Header(object):
 				result = re.sub(timestamp, '', result)
 			self.title = result[self.get_level():].strip()
 		return self.title
-
-	def get_hash(self):
-		patterns = []
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))  # Level, keyword, priority and hash
-		patterns.append(re.compile("\*{1,} \[\#[A-Z]\] "))  # Level, priority and hash
-		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\] "))  # Level, keyword, timestamp
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} "))  # Level, keyword, and hash
-		patterns.append(re.compile("\*{1,} ")) # Level, hash
-		if self.has_hash():
-			for pattern in patterns:
-				if pattern.match(self.line):
-					return pattern.sub('', self.line)[0:5]
-		else:
-			return None

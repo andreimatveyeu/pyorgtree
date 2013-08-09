@@ -206,7 +206,7 @@ class HashedOrgTree(OrgTree, PickleSerializableOrgTree, TextSerializableOrgTree)
 		while i < len(data):
 			line = data[i]
 			if tree_start_pattern.match(line):
-				header = Header(line)
+				header = HashedHeader(line)
 				new_level = header.get_level()
 				if new_level > self.level:
 					new_child = HashedOrgTree()

@@ -8,7 +8,7 @@ from logging import debug, log, info
 class TestHeader(object):
 	def test_title_only(self):
 		string = "** title test header"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert not header.has_hash()
 		assert header.get_hash() == None
 		assert header.get_type() == None
@@ -18,7 +18,7 @@ class TestHeader(object):
 
 	def test_header_type_hash_title(self):
 		string = "*** TODO 12345: test header"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.get_hash() == "12345"
 		assert header.get_type() == "TODO"
@@ -27,7 +27,7 @@ class TestHeader(object):
 
 	def test_header_type_priority_hash_title(self):
 		string = "* LOG [#A] z2389: TEST header"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.get_hash() == "z2389"
 		assert header.get_type() == "LOG"
@@ -37,7 +37,7 @@ class TestHeader(object):
 
 	def test_header_priority_hash_title(self):
 		string = "** [#A] z2389: TEST header"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.get_hash() == "z2389"
 		assert header.get_type() == None
@@ -47,7 +47,7 @@ class TestHeader(object):
 
 	def test_header_priority_title(self):
 		string = "** [#A] simple header"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert not header.has_hash()
 		assert header.get_hash() == None
 		assert header.get_type() == None
@@ -81,7 +81,7 @@ class TestHeader(object):
 		assert header.get_title() == "hello world"
 
 		string = "** LOG [1999-12-31 Wed 08:00] zx839: hello world"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.get_hash() == 'zx839'
 		assert header.has_timestamp()
@@ -89,7 +89,7 @@ class TestHeader(object):
 		assert header.get_title() == "hello world"
 
 		string = "***** [2011-10-14 Fri] iddww: test hello world"
-		header = Header(string)
+		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.has_timestamp()
 		assert header.get_timestamp(string=True) == "[2011-10-14 Fri]"
