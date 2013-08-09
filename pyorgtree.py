@@ -294,7 +294,7 @@ class OrgTree(Node):
 
 	def get_header(self):
 		return self.header
-		
+
 	def set_header(self, header):
 		self.header = header
 
@@ -381,19 +381,7 @@ class OrgTree(Node):
 	def __str__(self):
 		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
 
-class HashedOrgTree(OrgTree):
-	tree_dict = dict()
-	def __init__(self):
-		super(HashedOrgTree, self).__init__()
-		
-	def get_subtree_by_hash(self, subtree_hash):
-		try:
-			return self.tree_dict[subtree_hash]
-		except KeyError:
-			return None
-	def get_tree_dict(self):
-		return self.tree_dict
-		
+class SerializableTree():
 	def pickle_load(self, filename):
 		try:
 			inp = open(filename, 'rb')
@@ -411,6 +399,21 @@ class HashedOrgTree(OrgTree):
 			return True
 		except IOError:
 			return False
+
+class HashedOrgTree(OrgTree, SerializableTree):
+	tree_dict = dict()
+	def __init__(self):
+		super(HashedOrgTree, self).__init__()
+
+	def get_subtree_by_hash(self, subtree_hash):
+		try:
+			return self.tree_dict[subtree_hash]
+		except KeyError:
+			return None
+
+	def get_tree_dict(self):
+		return self.tree_dict
+
 	def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
 		if tree_dict:
 			self.tree_dict = tree_dict
@@ -449,7 +452,7 @@ class HashedOrgTree(OrgTree):
 			else:
 			   self.raw_data += line
 			   i += 1
-		
+
 class OrgTreeWriter(object):
 	orgtree = None
 	def __init__(self, orgtree):
@@ -466,4 +469,3 @@ class OrgTreeWriter(object):
 		out.write(os.linesep)
 		out.write(self.orgtree.get_data())
 		out.close()
-
