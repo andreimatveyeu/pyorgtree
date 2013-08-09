@@ -319,9 +319,9 @@ class TestTreeWriter(object):
 			self._temp_file = None
 
 	def test_write_read_simple(self):
-		tree = HashedOrgTree()
+		tree = OrgTree()
 		tree.read_from_file('test_data/tree05.org', 0, 0)
-		tw = OrgTreeWriter(tree[0])
+		tw = OrgTreeWriter(tree[1])
 		_, self._temp_file = tempfile.mkstemp()
 		tw.write(self._temp_file)
 		original_file = open('test_data/tree05.org', 'r').read()
