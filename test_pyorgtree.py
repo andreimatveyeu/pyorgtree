@@ -283,8 +283,6 @@ class TestHashedOrgTree(object):
 		log(1, "Loading tree from file: %s" % self._temp_file)
 		new_tree = HashedOrgTree()
 		new_tree.pickle_load(self._temp_file)
-		print tree.get_tree_dict().keys()
-		print new_tree.get_tree_dict().keys()
 		assert tree.get_tree_dict().keys() == new_tree.get_tree_dict().keys()
 		for tree_hash in tree.get_tree_dict().keys():
 			log(1, "Comparing trees: %s " % tree_hash)

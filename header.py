@@ -139,26 +139,10 @@ class HashedHeader(Header):
 			if pattern.match(self.line):
 				return True
 		return False
-		
+
 	def get_title(self):
-		if self.title == None:
-			result = self.line
-			if self.has_tags():
-				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", result)
-				result = re.sub(tag_string, "", result)
-			if self.has_hash():
-				tree_hash = self.get_hash()
-				result = re.sub(tree_hash + ':', '', result)
-			if self.has_priority():
-				priority = self.get_priority()
-				result = re.sub('\[#%s\]' % priority , '', result)
-			if self.has_type():
-				tree_type = self.get_type()
-				result = re.sub(tree_type, '', result)
-			if self.has_timestamp():
-				timestamp = self.get_timestamp(string=True)
-				timestamp = re.sub("\[", "\\[", timestamp)
-				timestamp = re.sub("\]", "\\]", timestamp)
-				result = re.sub(timestamp, '', result)
-			self.title = result[self.get_level():].strip()
-		return self.title
+		title = super(HashedHeader, self).get_title()
+		if self.has_hash():
+			tree_hash = self.get_hash()
+			title = re.sub(tree_hash + ':', '', title).strip()
+		return title
