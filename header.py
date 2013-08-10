@@ -40,7 +40,12 @@ class HeaderTags(object):
 		else:
 			return False
 		
+	def remove_all_tags(self):
+		self.tags = []
+		
 	def get_tag_string(self):
+		if not self.tags:
+			return ""
 		result = ":"
 		for tag in self.tags:
 			result += tag + ":"
@@ -69,7 +74,7 @@ class HeaderPriority(object):
 		
 	def set_priority(self, priority):
 		pattern = re.compile("^[A-Z]$")
-		if not pattern.match(priority):
+		if not (priority == None or pattern.match(priority)):
 			return False
 		self.priority = priority
 		return True
@@ -77,7 +82,10 @@ class HeaderPriority(object):
 	def get_priority_string(self):
 		if self.priority == "NA":
 			self.get_priority()
-		return "[#%s]" % self.priority
+		if self.priority:
+			return "[#%s]" % self.priority
+		else:
+			return ""
 			
 class HeaderType(object):
 	header_type = "NA"
@@ -97,6 +105,20 @@ class HeaderType(object):
 					self.header_type = re.sub("\*{1,} (?P<type>[A-Z]{3,5}) .{0,}", "\g<type>", self.line)
 		return self.header_type
 
+	def set_type(self, new_type):
+		pattern = re.compile("^[A-Z]{3,5}$")
+		if not (new_type == None or pattern.match(new_type)):
+			return False
+		self.header_type = new_type
+		return True
+	def get_type_string(self):
+		if self.header_type == "NA":
+			self.get_type()
+		if self.header_type:
+			return self.header_type
+		else:
+			return ""
+
 class HeaderTimestamp(object):
 	timestamp = -1
 	timestamp_time_included = True
@@ -108,12 +130,17 @@ class HeaderTimestamp(object):
 	def has_dateonly(self):
 		if self.timestamp == -1:
 			self.get_timestamp()
-		return not self.timestamp_time_included
+		if self.timestamp:
+			return not self.timestamp_time_included
+		else:
+			return None
 		
 	def get_timestamp_string(self):
 		if self.timestamp == -1:
 			self.get_timestamp()
-		if self.timestamp_time_included:
+		if self.timestamp == None:
+			return ""
+		elif self.timestamp_time_included:
 			return self.timestamp.strftime("[%Y-%m-%d %a %H:%M]")	
 		else:
 			return self.timestamp.strftime("[%Y-%m-%d %a]")	
@@ -138,7 +165,15 @@ class HeaderTimestamp(object):
 						minute = 0
 					self.timestamp = datetime.datetime(year, month, day, hour, minute)
 		return self.timestamp
-	
+
+	def set_timestamp(self, timestamp, dateonly=False):
+		if not (timestamp == None or isinstance(timestamp, datetime.datetime)):
+			return False
+		self.timestamp = timestamp
+		if not dateonly or timestamp == None:
+			self.timestamp_time_included = True
+		return True
+		
 class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 	line = None
 	title = None
@@ -156,6 +191,12 @@ class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 	def get_level(self):
 		return self.level
 
+	def set_level(self, level):
+		if level < 1:
+			return False
+		self.level = level
+		return True
+		
 	def get_title(self):
 		if self.title == None:
 			result = self.line
@@ -172,8 +213,20 @@ class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 				result = re.sub(".{1,} \[[0-9][0-9].{1,}\]", "", result)
 			self.title = re.sub("^\*{1,}", "", result).strip()
 		return self.title
-
-
+		
+	def set_title(self, title):
+		if title == None or not isinstance(title, str) or not title.strip():
+			return False
+		self.title = title
+		return True
+		
+	def get_string(self):
+		result = ""
+		for _ in range(self.level):
+			result += "*"
+		result += " " + self.get_title
+		return result
+		
 class HashedHeader(Header):
 	header_hash = "NA"
 	def get_hash(self):

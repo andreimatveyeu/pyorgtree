@@ -6,6 +6,23 @@ import datetime
 from logging import debug, log, info
 
 class TestHeaderTags(object):
+	def test_header_tags(self):
+		string = "** LOG simple title? :Tag1:Tag2:Tag3:"
+		header = Header(string)
+		assert header.has_tags()
+		assert header.get_tags() == ['Tag1', 'Tag2', 'Tag3']
+		assert header.get_title() == "simple title?"
+
+		string = "** LOG simple title?\t:Tag1:"
+		header = Header(string)
+		assert header.has_tags()
+		assert header.get_tags() == ['Tag1']
+		assert header.get_title() == "simple title?"
+
+		string = "** LOG :tag1:tag2:tag3"
+		header = Header(string)
+		assert not header.has_tags()
+		
 	def test_add_remove_tags(self):
 		string = "** title :tag1:tag2:tag3:"
 		header = Header(string)
@@ -17,6 +34,9 @@ class TestHeaderTags(object):
 		assert header.add_tag('tag4')
 		assert header.get_tags() == ['tag1', 'tag3', 'tag4']
 		assert header.get_tag_string() == ":tag1:tag3:tag4:"
+		header.remove_all_tags()
+		assert header.get_tags() == []
+		assert header.get_tag_string() == ""
 		
 	def test_add_invalid_tag(self):
 		string = "** title :tag1:tag2:tag3:"
@@ -24,40 +44,14 @@ class TestHeaderTags(object):
 		assert header.get_tags() == ['tag1', 'tag2', 'tag3']
 		assert not header.add_tag("ttt xxx")
 		assert header.get_tags() == ['tag1', 'tag2', 'tag3']
+		
+	def test_no_tags(self):
+		string = "** title"
+		header = Header(string)
+		assert header.get_tags() == []
+		assert header.get_tag_string() == ""
 
 class TestHeaderPriority(object):
-	def test_set_get_priority(self):
-		string = "** [#B] title :tag1:tag2:tag3:"
-		header = Header(string)
-		assert header.get_priority() == "B"
-		assert header.get_priority_string() == "[#B]"
-		assert header.set_priority("C")
-		assert header.get_priority_string() == "[#C]"
-		assert header.get_priority() == "C"
-		assert not header.set_priority("FF")
-		assert header.get_priority() == "C"
-		assert header.get_priority_string() == "[#C]"
-		
-class TestHeader(object):
-	def test_title_only(self):
-		string = "** title test header"
-		header = HashedHeader(string)
-		assert not header.has_hash()
-		assert header.get_hash() == None
-		assert header.get_type() == None
-		assert header.get_title() == "title test header"
-		assert header.get_level() == 2
-		assert header.get_priority() == None
-
-	def test_header_type_hash_title(self):
-		string = "*** TODO 12345: test header"
-		header = HashedHeader(string)
-		assert header.has_hash()
-		assert header.get_hash() == "12345"
-		assert header.get_type() == "TODO"
-		assert header.get_title() == "test header"
-		assert header.get_level() == 3
-
 	def test_header_type_priority_hash_title(self):
 		string = "* LOG [#A] z2389: TEST header"
 		header = HashedHeader(string)
@@ -77,7 +71,28 @@ class TestHeader(object):
 		assert header.get_title() == "TEST header"
 		assert header.get_level() == 2
 		assert header.get_priority() == "A"
-
+		
+	def test_set_get_priority(self):
+		string = "** [#B] title :tag1:tag2:tag3:"
+		header = Header(string)
+		assert header.get_priority() == "B"
+		assert header.get_priority_string() == "[#B]"
+		assert header.set_priority("C")
+		assert header.get_priority_string() == "[#C]"
+		assert header.get_priority() == "C"
+		assert not header.set_priority("FF")
+		assert header.get_priority() == "C"
+		assert header.get_priority_string() == "[#C]"
+		assert header.set_priority(None)
+		assert header.get_priority() == None
+		assert header.get_priority_string() == ""
+		
+	def test_no_priority(self):
+		string = "** title :tag1:tag2:tag3:"
+		header = Header(string)
+		assert header.get_priority() == None
+		assert header.get_priority_string() == ""
+		
 	def test_header_priority_title(self):
 		string = "** [#A] simple header"
 		header = HashedHeader(string)
@@ -88,33 +103,64 @@ class TestHeader(object):
 		assert header.get_level() == 2
 		assert header.get_priority() == "A"
 
-	def test_header_timestamp(self):
-		string = "** [1999-12-31 Wed 08:00] "
+class TestHeaderTimestamp(object):
+	def test_set_get_timestamp(self):
+		string = "** RENEW [2013-08-10 Sat 10:39] title header"
 		header = Header(string)
 		assert header.has_timestamp()
-
+		assert header.has_dateonly() == False
+		assert header.get_timestamp() == datetime.datetime(2013, 8, 10, 10, 39)
+		assert header.get_timestamp_string() == "[2013-08-10 Sat 10:39]"
+		assert header.set_timestamp(datetime.datetime(2013, 8, 14, 12, 15))
+		assert header.has_dateonly() == False
+		assert header.get_timestamp() == datetime.datetime(2013, 8, 14, 12, 15)
+		assert header.get_timestamp_string() == "[2013-08-14 Wed 12:15]"
+		assert header.set_timestamp(None)
+		assert header.get_timestamp() == None
+		assert header.get_timestamp_string() == ""
+	def test_set_get_timestamp_dateonly(self):
+		string = "** RENEW [2013-08-10 Sat] title header"
+		header = Header(string)
+		assert header.has_timestamp()
+		assert header.has_dateonly() == True
+		assert header.get_timestamp() == datetime.datetime(2013, 8, 10, 0, 0)
+		assert header.get_timestamp_string() == "[2013-08-10 Sat]"
+		assert header.set_timestamp(datetime.datetime(2013, 8, 14, 0, 0), dateonly=True)
+		assert header.has_dateonly() == True
+		assert header.get_timestamp() == datetime.datetime(2013, 8, 14, 0, 0)
+		assert header.get_timestamp_string() == "[2013-08-14 Wed]"
+		assert header.set_timestamp(None)
+		assert header.get_timestamp() == None
+		assert header.get_timestamp_string() == ""
+		assert header.has_dateonly() == None
+		
+	def test_header_timestamp_simple(self):
 		string = "** [1999-12-31 Wed 08:00]"
 		header = Header(string)
 		assert header.has_timestamp()
 
+	def test_header_timestamp_dateonly(self):
 		string = "** [1999-12-31 Wed]"
 		header = Header(string)
 		assert header.has_timestamp()
 		assert header.has_dateonly()
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 0, 0)
 
+	def test_header_timestamp_keyword(self):
 		string = "** LOG [1999-12-31 Wed 08:00]"
 		header = Header(string)
 		assert header.has_timestamp()
 		assert not header.has_dateonly()
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
 
+	def test_header_timestamp_keyword_title(self):
 		string = "** LOG [1999-12-31 Wed 08:00] hello world"
 		header = Header(string)
 		assert header.has_timestamp()
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
 		assert header.get_title() == "hello world"
 
+	def test_header_timestamp_keyword_title_hash(self):
 		string = "** LOG [1999-12-31 Wed 08:00] zx839: hello world"
 		header = HashedHeader(string)
 		assert header.has_hash()
@@ -123,6 +169,7 @@ class TestHeader(object):
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
 		assert header.get_title() == "hello world"
 
+	def test_header_timestamp_dateonly_title_hash(self):
 		string = "***** [2011-10-14 Fri] iddww: test hello world"
 		header = HashedHeader(string)
 		assert header.has_hash()
@@ -132,23 +179,40 @@ class TestHeader(object):
 		assert header.get_timestamp() == datetime.datetime(2011, 10, 14, 0, 0)
 		assert header.get_hash() == 'iddww'
 		assert header.get_title() == 'test hello world'
+		
+class TestHeaderType(object):
+	def test_header_type(self):
+		string = "** RENEW title "
+		header = HashedHeader(string)
+		assert header.has_type()
+		assert header.get_type() == "RENEW"
+		assert header.get_type_string() == "RENEW"
+		assert header.set_type("SET")
+		assert header.get_type() == "SET"
+		assert header.get_type_string() == "SET"
+		assert header.set_type(None)		
+		assert header.get_type() == None
+		assert header.get_type_string() == ""
 
-	def test_header_tags(self):
-		string = "** LOG simple title? :Tag1:Tag2:Tag3:"
-		header = Header(string)
-		assert header.has_tags()
-		assert header.get_tags() == ['Tag1', 'Tag2', 'Tag3']
-		assert header.get_title() == "simple title?"
-
-		string = "** LOG simple title?\t:Tag1:"
-		header = Header(string)
-		assert header.has_tags()
-		assert header.get_tags() == ['Tag1']
-		assert header.get_title() == "simple title?"
-
-		string = "** LOG :tag1:tag2:tag3"
-		header = Header(string)
-		assert not header.has_tags()
+	def test_header_type_hash_title(self):
+		string = "*** TODO 12345: test header"
+		header = HashedHeader(string)
+		assert header.has_hash()
+		assert header.get_hash() == "12345"
+		assert header.get_type() == "TODO"
+		assert header.get_title() == "test header"
+		assert header.get_level() == 3
+		
+class TestHeader(object):
+	def test_title_only(self):
+		string = "** title test header"
+		header = HashedHeader(string)
+		assert not header.has_hash()
+		assert header.get_hash() == None
+		assert header.get_type() == None
+		assert header.get_title() == "title test header"
+		assert header.get_level() == 2
+		assert header.get_priority() == None
 
 class TestTreeData(object):
 	def test_properties(self):
