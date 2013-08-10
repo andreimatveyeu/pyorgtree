@@ -12,7 +12,6 @@ class TestHeader(object):
 		assert not header.has_hash()
 		assert header.get_hash() == None
 		assert header.get_type() == None
-		print header.get_title()
 		assert header.get_title() == "title test header"
 		assert header.get_level() == 2
 		assert header.get_priority() == None
