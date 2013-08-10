@@ -46,9 +46,16 @@ class OrgTreeReader(object):
 class OrgTreeWriter(object):
 	def write_to_file(self, filename):
 		out = open(filename, 'w')
-		out.write(self.get_header().get_string())
-		out.write(os.linesep)
-		out.write(self.get_data())
+		tree_sequence = []
+		children = self.get_children()
+		for item in self:
+			if not item.get_header():
+				continue
+			tree_sequence.append(item)
+		for item in tree_sequence:
+			out.write(item.get_header().get_string())
+			out.write(os.linesep)
+			out.write(item.get_data())
 		out.close()
 			
 class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
@@ -59,7 +66,7 @@ class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
 	tag_dict = dict()
 	header = None
 	properties = None
-
+	
 	def get_header(self):
 		return self.header
 

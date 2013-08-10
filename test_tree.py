@@ -18,7 +18,7 @@ class TestTree(object):
 		counter = 0
 		for item in tree:
 			if counter == 0:
-				assert item == subsubsubtree1
+				assert item == tree
 			counter += 1
 		print counter
 		assert counter == 7

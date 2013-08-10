@@ -2,10 +2,10 @@ class Node(object):
 	parent = None
 	children = []
 	def __iter__(self):
+		yield self
 		for child in self.children:
 			for item in child:
 				yield item
-		yield self
 	def add_child(self, new_child):
 	    self.children.append(new_child)
 	def has_children(self):

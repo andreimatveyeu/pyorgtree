@@ -593,14 +593,24 @@ class TestTreeWriter(object):
 	_temp_file = None
 	def teardown(self):
 		if self._temp_file:
-			os.unlink(self._temp_file)
+			#os.unlink(self._temp_file)
 			self._temp_file = None
 
 	def test_write_read_simple(self):
 		tree = OrgTree()
 		tree.read_from_file('test_data/tree05.org', 0, 0)
 		_, self._temp_file = tempfile.mkstemp()
-		tree[1].write_to_file(self._temp_file)
+		tree.write_to_file(self._temp_file)
 		original_file = open('test_data/tree05.org', 'r').read()
+		written_file = open(self._temp_file, 'r').read()
+		assert written_file == original_file
+
+	def test_write_tree(self):
+		tree = OrgTree()
+		tree.read_from_file('test_data/tree06.org', 0, 0)
+		_, self._temp_file = tempfile.mkstemp()
+		self._temp_file = '/tmp/out'
+		tree.write_to_file(self._temp_file)
+		original_file = open('test_data/tree06.org', 'r').read()
 		written_file = open(self._temp_file, 'r').read()
 		assert written_file == original_file
