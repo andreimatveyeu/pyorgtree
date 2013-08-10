@@ -52,6 +52,20 @@ class TestHeaderTags(object):
 		assert header.get_tag_string() == ""
 
 class TestHeaderPriority(object):
+	def test_get_priority_incremental(self):
+		headers = [
+			"* [#A] head header",
+			"* LOG [#A] head header",
+			"* [#A] LOG head header",
+			"* LOG [#A] [2013-08-10 Sat 12:45] head header",
+			"* LOG [2013-08-10 Sat 12:45] [#A] head header",
+			]
+		for header in headers:
+			header = Header(header)
+			assert header.has_priority()
+			assert header.get_priority() == "A"
+
+		
 	def test_header_type_priority_hash_title(self):
 		string = "* LOG [#A] z2389: TEST header"
 		header = HashedHeader(string)
@@ -213,7 +227,53 @@ class TestHeader(object):
 		assert header.get_title() == "title test header"
 		assert header.get_level() == 2
 		assert header.get_priority() == None
+		assert header.get_string() == "** title test header"
 
+	def test_set_title(self):
+		string = "** title test header"
+		header = Header(string)
+		new_title = "new header title"
+		assert header.set_title(new_title)
+		assert header.get_title() == new_title
+		assert header.get_string() == "** %s" % new_title
+		assert not header.set_title(None)
+
+	def test_set_level(self):
+		string = "** title test header"
+		header = Header(string)
+		new_level = 5
+		assert header.set_level(new_level)
+		assert header.get_level() == new_level
+		assert header.get_string() == "***** title test header"
+		
+	def test_get_string(self):
+		headers = {
+		"** TODO title test header1" : "** TODO title test header1",
+		"** TODO [#A] title test header2" : "** TODO [#A] title test header2",
+		"** TODO [#A] [2013-08-10 Sat 11:51] title test header3": "** TODO [#A] [2013-08-10 Sat 11:51] title test header3",
+		"***** TODO [#C] title test header4 :tag1:tag2:tag3:" : "***** TODO [#C] title test header4 :tag1:tag2:tag3:",
+		"** TODO [#A] [2013-08-10 Sat 11:51] title test header5" : "** TODO [#A] [2013-08-10 Sat 11:51] title test header5",
+		"** TODO [2013-08-10 Sat 11:51] [#A] title test header6" : "** TODO [2013-08-10 Sat 11:51] [#A] title test header6",
+		"** TODO [#A] [2013-08-10 Sat 11:51] title test header7 :tag1:tag2:tag3:" : "** TODO [#A] [2013-08-10 Sat 11:51] title test header7 :tag1:tag2:tag3:"
+		}
+		for key, value in headers.items():
+			header = Header(key)
+			assert header.get_string() == value
+
+	def test_get_string_hashed(self):
+		headers = {
+		"** TODO title test header1" : "** TODO title test header1",
+		"** TODO [#A] 12345: title test header2" : "** TODO [#A] 12345: title test header2",
+		"** TODO [#A] [2013-08-10 Sat 11:51] 23456: title test header3": "** TODO [#A] [2013-08-10 Sat 11:51] 23456: title test header3",
+		"***** TODO [#C] aaaaa: title test header4 :tag1:tag2:tag3:" : "***** TODO [#C] aaaaa: title test header4 :tag1:tag2:tag3:",
+		"** TODO [#A] [2013-08-10 Sat 11:51] bbbbb: title test header5" : "** TODO [#A] [2013-08-10 Sat 11:51] bbbbb: title test header5",
+		"** TODO [2013-08-10 Sat 11:51] [#A] ccccc: title test header6" : "** TODO [2013-08-10 Sat 11:51] [#A] ccccc: title test header6",
+		"** TODO [#A] [2013-08-10 Sat 11:51] c1234: title test header7 :tag1:tag2:tag3:" : "** TODO [#A] [2013-08-10 Sat 11:51] c1234: title test header7 :tag1:tag2:tag3:"
+		}
+		for key, value in headers.items():
+			header = HashedHeader(key)
+			assert header.get_string() == value
+			
 class TestTreeData(object):
 	def test_properties(self):
 		tree = HashedOrgTree()

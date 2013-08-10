@@ -62,12 +62,17 @@ class HeaderPriority(object):
 	def get_priority(self):
 		if self.priority == "NA":
 			patterns = []
-			patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
-			patterns.append(re.compile("\*{1,} \[[#][A-Z]\] "))
+			priority_pattern = " \[#[A-Z]\].{0,}"
+			keyword_pattern = " [A-Z]{3,5}"
+			timestamp_pattern = " \[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0})\]"
+			patterns.append(re.compile("\*{1,}%s" % (priority_pattern)))  
+			patterns.append(re.compile("\*{1,}%s%s" % (keyword_pattern, priority_pattern)))  
+			patterns.append(re.compile("\*{1,}%s%s%s" % (keyword_pattern, priority_pattern, timestamp_pattern)))  
+			patterns.append(re.compile("\*{1,}%s%s%s" % (keyword_pattern, timestamp_pattern, priority_pattern)))  
 			self.priority = None
 			for pattern in patterns:
 				if pattern.match(self.line):
-					prio = re.sub(".{1,} (?P<prio>\[#[A-Z]\]) .{0,}", "\g<prio>", self.line)
+					prio = re.sub(".{1,} (?P<prio>\[#[A-Z]\]).{0,}", "\g<prio>", self.line)
 					self.priority = prio[2:3]
 					break
 		return self.priority
@@ -149,7 +154,12 @@ class HeaderTimestamp(object):
 		if self.timestamp == -1:
 			self.timestamp = None
 			patterns = []
-			patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
+			keyword_pattern = " ([A-Z]{3,5}|.{0})"
+			timestamp_pattern = "\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0})\]"
+			priority_pattern = " (\[#[A-Z]\]|.{0})"
+			patterns.append(re.compile("\*{1,}%s%s" % (keyword_pattern, timestamp_pattern)))  
+			patterns.append(re.compile("\*{1,}%s%s%s($|.{0,})" % (keyword_pattern, priority_pattern, timestamp_pattern)))  
+			patterns.append(re.compile("\*{1,}%s%s%s($|.{0,})" % (keyword_pattern, timestamp_pattern, priority_pattern)))  
 			for pattern in patterns:
 				if pattern.match(self.line):
 					time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]).{0,}", "\g<time>", self.line)
@@ -221,10 +231,20 @@ class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 		return True
 		
 	def get_string(self):
+		if self.title == None:
+			self.get_title()
 		result = ""
 		for _ in range(self.level):
 			result += "*"
-		result += " " + self.get_title
+		if self.has_type():
+			result += " %s" % self.get_type_string()
+		if self.has_timestamp():
+			result += " %s" % self.get_timestamp_string()
+		if self.has_priority():
+			result += " %s" % self.get_priority_string()
+		result += " %s" % self.get_title()
+		if self.has_tags():
+			result += " %s" % self.get_tag_string()
 		return result
 		
 class HashedHeader(Header):
@@ -248,3 +268,22 @@ class HashedHeader(Header):
 			tree_hash = self.get_hash()
 			title = re.sub(tree_hash + ':', '', title).strip()
 		return title
+
+	def get_string(self):
+		if self.title == None:
+			self.get_title()
+		result = ""
+		for _ in range(self.level):
+			result += "*"
+		if self.has_type():
+			result += " %s" % self.get_type_string()
+		if self.has_timestamp():
+			result += " %s" % self.get_timestamp_string()
+		if self.has_priority():
+			result += " %s" % self.get_priority_string()
+		if self.has_hash():
+			result += " %s:" % self.get_hash()
+		result += " %s" % self.get_title()
+		if self.has_tags():
+			result += " %s" % self.get_tag_string()
+		return result
