@@ -12,6 +12,7 @@ class TestHeader(object):
 		assert not header.has_hash()
 		assert header.get_hash() == None
 		assert header.get_type() == None
+		print header.get_title()
 		assert header.get_title() == "title test header"
 		assert header.get_level() == 2
 		assert header.get_priority() == None
@@ -92,8 +93,8 @@ class TestHeader(object):
 		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.has_timestamp()
-		assert header.get_timestamp(string=True) == "[2011-10-14 Fri]"
-		assert header.get_timestamp(string=False) == datetime.datetime(2011, 10, 14, 0, 0)
+		assert header.get_timestamp_string() == "[2011-10-14 Fri]"
+		assert header.get_timestamp() == datetime.datetime(2011, 10, 14, 0, 0)
 		assert header.get_hash() == 'iddww'
 		assert header.get_title() == 'test hello world'
 

@@ -60,33 +60,41 @@ class HeaderType(object):
 		return self.header_type
 
 class HeaderTimestamp(object):
+	timestamp = datetime.datetime(1970, 1, 1, 0, 0)
+	timestamp_time_included = True
 	def has_timestamp(self):
-		patterns = []
-		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
-		for pattern in patterns:
-			if pattern.match(self.line):
-				return True
-		return False
-
-	def get_timestamp(self, string=False):
-		if self.has_timestamp():
-			time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]).{0,}", "\g<time>", self.line)
-			if not string:
-				year = int(time_string[1:5])
-				month = int(time_string[6:8])
-				day = int(time_string[9:11])
-				try:
-					hour = int(time_string[16:18])
-					minute = int(time_string[19:21])
-				except ValueError:
-					hour = 0
-					minute = 0
-				return datetime.datetime(year, month, day, hour, minute)
-			else:
-				return time_string
+		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+			self.get_timestamp()
+		return self.timestamp != None
+		
+	def get_timestamp_string(self):
+		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+			self.get_timestamp()
+		if self.timestamp_time_included:
+			return self.timestamp.strftime("[%Y-%m-%d %a %H:%M]")	
 		else:
-			return None
-
+			return self.timestamp.strftime("[%Y-%m-%d %a]")	
+			
+	def get_timestamp(self):
+		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+			self.timestamp = None
+			patterns = []
+			patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
+			for pattern in patterns:
+				if pattern.match(self.line):
+					time_string = re.sub(".{0,}(?P<time>\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]).{0,}", "\g<time>", self.line)
+					year = int(time_string[1:5])
+					month = int(time_string[6:8])
+					day = int(time_string[9:11])
+					try:
+						hour = int(time_string[16:18])
+						minute = int(time_string[19:21])
+					except ValueError:
+						self.timestamp_time_included = False
+						hour = 0
+						minute = 0
+					self.timestamp = datetime.datetime(year, month, day, hour, minute)
+		return self.timestamp
 	
 class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 	line = None
@@ -118,11 +126,8 @@ class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
 				tree_type = self.get_type()
 				result = re.sub(tree_type, '', result)
 			if self.has_timestamp():
-				timestamp = self.get_timestamp(string=True)
-				timestamp = re.sub("\[", "\\[", timestamp)
-				timestamp = re.sub("\]", "\\]", timestamp)
-				result = re.sub(timestamp, '', result)
-			self.title = result[self.get_level():].strip()
+				result = re.sub(".{1,} \[[0-9][0-9].{1,}\]", "", result)
+			self.title = re.sub("^\*{1,}", "", result).strip()
 		return self.title
 
 
