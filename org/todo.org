@@ -1,0 +1,76 @@
+* TODO support for active/inactive timestamps
+
+distinguished with [ and <
+
+http://orgmode.org/manual/Timestamps.html
+
+* TODO support for duration in schedules
+
+<2006-11-02 Thu 20:00-22:00>
+
+http://orgmode.org/manual/Timestamps.html
+
+* TODO support for date/time ranges
+<2004-08-23 Mon>--<2004-08-26 Thu>
+
+* TODO extract all timestamps from body
+* TODO extract log entries' timestamps from tree body
+* TODO diary-style timestamps
+22:00-23:00 The nerd meeting on every 2nd Thursday of the month
+            <%%(diary-float t 4 2)>
+
+* TODO tree body HTML conversion
+** TODO footnotes
+** TODO tables
+** TODO hyperlinks
+** TODO internal links
+
+** TODO checkboxes
+http://orgmode.org/manual/Checkboxes.html#Checkboxes
+
+* TODO parsing properties at the beginning of the file
+MY PROJECTS    -*- mode: org; -*-
+
+* TODO get keywords from tree
+* TODO get items by keywords from tree
+* TODO construct sparse trees (tags, properties etc)
+* TODO drawer support
+* TODO implement properties support as a subclass of drawers
+http://orgmode.org/manual/Drawers.html#Drawers
+
+* TODO search
+* TODO subtasks, breakdown lists and indicators
+http://orgmode.org/manual/Breaking-down-tasks.html#Breaking-down-tasks
+
+* TODO limit tags to specified ones
+ #+FILETAGS: :Peter:Boss:Secret:
+
+
+* TODO setting tags features according to the manual
+http://orgmode.org/manual/Setting-tags.html#Setting-tags
+
+* TODO categories
+* TODO document title
+  #+TITLE: This is the title of the document
+* TODO images
+* TODO include files
+http://orgmode.org/manual/Include-files.html#Include-files
+* TODO index entries
+http://orgmode.org/manual/Index-entries.html#Index-entries
+* TODO special blocks
+http://orgmode.org/manual/Special-blocks.html#Special-blocks
+
+* TODO refile nodes
+* TODO tag groups
+http://orgmode.org/manual/Setting-tags.html#Setting-tags
+* TODO properties
+http://orgmode.org/manual/Property-syntax.html#Property-syntax
+* TODO special properties
+http://orgmode.org/manual/Special-properties.html#Special-properties
+* TODO property searches
+* TODO effort estimates
+http://orgmode.org/manual/Effort-estimates.html#Effort-estimates
+* TODO archive support
+* TODO attachments
+
+
