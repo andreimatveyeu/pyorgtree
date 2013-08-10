@@ -42,20 +42,22 @@ class HeaderPriority(object):
 		return self.priority
 
 class HeaderType(object):
+	header_type = "NA"
+	
 	def has_type(self):
-		patterns = []
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} ")) 
-		for pattern in patterns:
-			if pattern.match(self.line):
-				return True
-		return False
+		if self.header_type == "NA":
+				self.get_type()
+		return self.header_type
 
 	def get_type(self):
-		if self.has_type():
-			tree_type = re.sub("\*{1,} (?P<type>[A-Z]{3,5}) .{0,}", "\g<type>", self.line)
-			return tree_type
-		else:
-			return None
+		if self.header_type == "NA":
+			self.header_type = None
+			patterns = []
+			patterns.append(re.compile("\*{1,} [A-Z]{3,5} ")) 
+			for pattern in patterns:
+				if pattern.match(self.line):
+					self.header_type = re.sub("\*{1,} (?P<type>[A-Z]{3,5}) .{0,}", "\g<type>", self.line)
+		return self.header_type
 
 class HeaderTimestamp(object):
 	def has_timestamp(self):
