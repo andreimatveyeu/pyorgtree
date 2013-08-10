@@ -19,7 +19,33 @@ class HeaderTags(object):
 			else:
 				self.tags = []
 		return self.tags
-
+		
+	def add_tag(self, tag):
+		if self.tags == None:
+			self.get_tags()
+		pattern = re.compile("^[a-z0-9]{1,}$")
+		if not pattern.match(tag):
+			return False
+		if tag not in self.tags:
+			self.tags.append(tag)
+			return True
+		return False
+		
+	def remove_tag(self, tag):
+		if self.tags == None:
+			self.get_tags()
+		if tag in self.tags:
+			self.tags.remove(tag)
+			return True
+		else:
+			return False
+		
+	def get_tag_string(self):
+		result = ":"
+		for tag in self.tags:
+			result += tag + ":"
+		return result
+		
 class HeaderPriority(object):
 	priority = "NA"
 	
@@ -40,7 +66,19 @@ class HeaderPriority(object):
 					self.priority = prio[2:3]
 					break
 		return self.priority
-
+		
+	def set_priority(self, priority):
+		pattern = re.compile("^[A-Z]$")
+		if not pattern.match(priority):
+			return False
+		self.priority = priority
+		return True
+		
+	def get_priority_string(self):
+		if self.priority == "NA":
+			self.get_priority()
+		return "[#%s]" % self.priority
+			
 class HeaderType(object):
 	header_type = "NA"
 	
@@ -60,15 +98,20 @@ class HeaderType(object):
 		return self.header_type
 
 class HeaderTimestamp(object):
-	timestamp = datetime.datetime(1970, 1, 1, 0, 0)
+	timestamp = -1
 	timestamp_time_included = True
 	def has_timestamp(self):
-		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+		if self.timestamp == -1:
 			self.get_timestamp()
 		return self.timestamp != None
 		
+	def has_dateonly(self):
+		if self.timestamp == -1:
+			self.get_timestamp()
+		return not self.timestamp_time_included
+		
 	def get_timestamp_string(self):
-		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+		if self.timestamp == -1:
 			self.get_timestamp()
 		if self.timestamp_time_included:
 			return self.timestamp.strftime("[%Y-%m-%d %a %H:%M]")	
@@ -76,7 +119,7 @@ class HeaderTimestamp(object):
 			return self.timestamp.strftime("[%Y-%m-%d %a]")	
 			
 	def get_timestamp(self):
-		if self.timestamp == datetime.datetime(1970, 1, 1, 0, 0):
+		if self.timestamp == -1:
 			self.timestamp = None
 			patterns = []
 			patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
@@ -140,6 +183,7 @@ class HashedHeader(Header):
 			if re.compile("^[a-z0-9]{5}: ").match(title):
 				self.header_hash = title[0:5]
 		return self.header_hash
+		
 	def has_hash(self):
 		if self.header_hash == "NA":
 			self.get_hash()

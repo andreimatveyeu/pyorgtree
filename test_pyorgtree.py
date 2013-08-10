@@ -5,6 +5,39 @@ import os
 import datetime
 from logging import debug, log, info
 
+class TestHeaderTags(object):
+	def test_add_remove_tags(self):
+		string = "** title :tag1:tag2:tag3:"
+		header = Header(string)
+		assert header.get_tags() == ['tag1', 'tag2', 'tag3']
+		assert header.get_tag_string() == ":tag1:tag2:tag3:"
+		assert header.remove_tag('tag2')
+		assert header.get_tags() == ['tag1', 'tag3']
+		assert header.get_tag_string() == ":tag1:tag3:"
+		assert header.add_tag('tag4')
+		assert header.get_tags() == ['tag1', 'tag3', 'tag4']
+		assert header.get_tag_string() == ":tag1:tag3:tag4:"
+		
+	def test_add_invalid_tag(self):
+		string = "** title :tag1:tag2:tag3:"
+		header = Header(string)
+		assert header.get_tags() == ['tag1', 'tag2', 'tag3']
+		assert not header.add_tag("ttt xxx")
+		assert header.get_tags() == ['tag1', 'tag2', 'tag3']
+
+class TestHeaderPriority(object):
+	def test_set_get_priority(self):
+		string = "** [#B] title :tag1:tag2:tag3:"
+		header = Header(string)
+		assert header.get_priority() == "B"
+		assert header.get_priority_string() == "[#B]"
+		assert header.set_priority("C")
+		assert header.get_priority_string() == "[#C]"
+		assert header.get_priority() == "C"
+		assert not header.set_priority("FF")
+		assert header.get_priority() == "C"
+		assert header.get_priority_string() == "[#C]"
+		
 class TestHeader(object):
 	def test_title_only(self):
 		string = "** title test header"
@@ -67,11 +100,13 @@ class TestHeader(object):
 		string = "** [1999-12-31 Wed]"
 		header = Header(string)
 		assert header.has_timestamp()
+		assert header.has_dateonly()
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 0, 0)
 
 		string = "** LOG [1999-12-31 Wed 08:00]"
 		header = Header(string)
 		assert header.has_timestamp()
+		assert not header.has_dateonly()
 		assert header.get_timestamp() == datetime.datetime(1999, 12, 31, 8, 0)
 
 		string = "** LOG [1999-12-31 Wed 08:00] hello world"
@@ -92,6 +127,7 @@ class TestHeader(object):
 		header = HashedHeader(string)
 		assert header.has_hash()
 		assert header.has_timestamp()
+		assert header.has_dateonly()
 		assert header.get_timestamp_string() == "[2011-10-14 Fri]"
 		assert header.get_timestamp() == datetime.datetime(2011, 10, 14, 0, 0)
 		assert header.get_hash() == 'iddww'
