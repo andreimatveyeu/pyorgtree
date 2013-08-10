@@ -311,21 +311,8 @@ class TestTreeData(object):
 		assert tree_dict['38402'].has_deadline()
 		assert tree_dict['38402'].get_deadline().get_datetime() == datetime.datetime(2013, 11, 30, 0, 0)
 
-class TestSchedule(object):
-	def test_schedule_date(self):
-		line = "SCHEDULED: <2013-09-20 Fri>"
-		schedule = Schedule(line)
 
-		assert schedule.has_date_only()
-		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 0, 0)
-
-	def test_schedule_datetime(self):
-		line = "SCHEDULED: <2013-09-20 Fri 15:05>"
-		schedule = Schedule(line)
-
-		assert not schedule.has_date_only()
-		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 15, 5)
-
+class TestScheduleRepeater(object):
 	def test_schedule_repeater(self):
 		line = "SCHEDULED: <2013-09-20 Fri 15:05 +1d>"
 		schedule = Schedule(line)
@@ -340,7 +327,35 @@ class TestSchedule(object):
 		assert schedule.get_repeater() == "++5y"
 		assert schedule.get_repeat_interval() == (5, "y")
 		assert not schedule.has_overdue_repeater()
+		
+	def test_set_repeater(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 +1d>"
+		schedule = Schedule(line)
+		assert schedule.set_repeater("+8m")
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "+8m"
+		assert schedule.get_repeat_interval() == (8, "m")
+		assert schedule.has_overdue_repeater()
 
+	def test_set_repeater_non_overdue(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 ++5y>"
+		schedule = Schedule(line)
+		assert schedule.set_repeater("++3m")
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "++3m"
+		assert schedule.get_repeat_interval() == (3, "m")
+		assert not schedule.has_overdue_repeater()
+
+	def test_set_repeater_invalid(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 ++5y>"
+		schedule = Schedule(line)
+		assert not schedule.set_repeater("++8z")
+		assert schedule.has_repeater()
+		assert schedule.get_repeater() == "++5y"
+		assert schedule.get_repeat_interval() == (5, "y")
+		assert not schedule.has_overdue_repeater()
+		
+class TestScheduleDelay(object):
 	def test_schedule_delay(self):
 		line = "SCHEDULED: <2013-09-20 Fri 15:05 -1d>"
 		schedule = Schedule(line)
@@ -353,6 +368,45 @@ class TestSchedule(object):
 		assert schedule.has_delay()
 		assert schedule.get_delay() == "--3w"
 		assert schedule.get_delay_interval() == (3, "w")
+		
+	def test_set_delay(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 -1d>"
+		schedule = Schedule(line)
+		assert schedule.set_delay("-2m")
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "-2m"
+		assert schedule.get_delay_interval() == (2, "m")
+
+	def test_set_delay_current(self):
+		line = "SCHEDULED: <2013-09-20 Fri --5w>"
+		schedule = Schedule(line)
+		assert schedule.set_delay("--5w")
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "--5w"
+		assert schedule.get_delay_interval() == (5, "w")
+
+	def test_set_delay_invalid(self):
+		line = "SCHEDULED: <2013-09-20 Fri --25w>"
+		schedule = Schedule(line)
+		assert not schedule.set_delay("--25k")
+		assert schedule.has_delay()
+		assert schedule.get_delay() == "--25w"
+		assert schedule.get_delay_interval() == (25, "w")
+		
+class TestSchedule(object):
+	def test_schedule_date(self):
+		line = "SCHEDULED: <2013-09-20 Fri>"
+		schedule = Schedule(line)
+
+		assert schedule.has_date_only()
+		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 0, 0)
+
+	def test_schedule_datetime(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05>"
+		schedule = Schedule(line)
+
+		assert not schedule.has_date_only()
+		assert schedule.get_datetime() == datetime.datetime(2013, 9, 20, 15, 5)
 
 	def test_schedule_repeater_and_delay(self):
 		line = "SCHEDULED: <2013-09-20 Fri 15:05 +10m -5w>"
@@ -373,6 +427,62 @@ class TestSchedule(object):
 		assert schedule.get_repeater() == "++2m"
 		assert schedule.get_repeat_interval() == (2, "m")
 
+	def test_schedule_get_date(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05 --30d ++2m>"
+		schedule = Schedule(line)
+		assert schedule.get_date() == datetime.date(2013, 9, 20)
+		
+		line = "SCHEDULED: <2013-09-20 Fri>"
+		schedule = Schedule(line)
+		assert schedule.get_date() == datetime.date(2013, 9, 20)
+				
+	def test_schedule_get_string(self):
+		line = "SCHEDULED: <2013-09-20 Fri 15:05>"
+		schedule = Schedule(line)
+		assert not schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-20 Fri 15:05>"
+
+		line = "SCHEDULED: <2013-09-20 Fri>"
+		schedule = Schedule(line)
+		assert schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-20 Fri>"
+
+		line = "SCHEDULED: <2013-09-20 Fri +15d>"
+		schedule = Schedule(line)
+		assert schedule.has_repeater()
+		assert schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-20 Fri +15d>"
+
+		line = "SCHEDULED: <2013-09-20 Fri -15d>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-20 Fri -15d>"
+
+		line = "SCHEDULED: <2013-09-20 Fri -15d ++3m>"
+		schedule = Schedule(line)
+		assert schedule.has_delay()
+		assert schedule.has_repeater()
+		assert schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-20 Fri -15d ++3m>"
+
+	def test_schedule_set_datetime(self):
+		line = "SCHEDULED: <2013-09-28 Sat 00:00 -15d ++3m>"
+		schedule = Schedule(line)
+		schedule.set_datetime(datetime.datetime(2013, 9, 28, 0, 0))
+		assert schedule.has_delay()
+		assert schedule.has_repeater()
+		assert not schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-28 Sat 00:00 -15d ++3m>"
+
+		line = "SCHEDULED: <2013-09-29 Sun>"
+		schedule = Schedule(line)
+		schedule.set_datetime(datetime.datetime(2013, 9, 30, 0, 0), date_only=True)
+		assert not schedule.has_delay()
+		assert not schedule.has_repeater()
+		assert schedule.has_date_only()
+		assert schedule.get_string() == "SCHEDULED: <2013-09-30 Mon>"
+		
 class TestOrgTree(object):
 	def test_read_from_file(self):
 		tree = OrgTree()

@@ -38,7 +38,7 @@ class ScheduleRepeater(object):
 		if self.repeater == -1:
 			self.get_repeater()
 		return self.repeater != None
-		
+				
 	def get_repeater(self):
 		if self.repeater == -1:
 			self.repeater = None
@@ -46,6 +46,14 @@ class ScheduleRepeater(object):
 			if schedule_repeater_pattern.match(self.schedule_line):
 				self.repeater = self._extract_repeater(self.schedule_line)
 		return self.repeater
+		
+	def set_repeater(self, new_repeater):
+		schedule_repeater_pattern = re.compile("^[\+]{1,2}[0-9]{1,4}[dwmy]$")
+		if not schedule_repeater_pattern.match(new_repeater):
+			return False
+		self.repeater = new_repeater
+		return True
+		
 	def has_overdue_repeater(self):
 		if self.has_repeater():
 			if re.compile("\+[0-9]").match(self.get_repeater()):
@@ -79,21 +87,24 @@ class ScheduleDelay(object):
 				self.delay = self._extract_delay(self.schedule_line)
 		return self.delay
 		
+	def set_delay(self, new_delay):
+		schedule_delay_pattern = re.compile("^[\-]{1,2}[0-9]{1,4}[dwmy]$")
+		if not schedule_delay_pattern.match(new_delay):
+			return False
+		self.delay = new_delay
+		return True
+		
 	def get_delay_interval(self):
 		if self.has_delay():
 			interval = re.sub("[-]{1,2}(?P<num>[0-9]{1,4}).{1,}", "\g<num>", self.delay)
 			interval = int(interval)
 			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", self.delay)
 		return (interval, unit)
-	
-class Schedule(ScheduleBase, ScheduleRepeater, ScheduleDelay):
-	datetime = -1
-	keyword = "SCHEDULED"
-	date_only = None
-	
-	def __init__(self, schedule_line):
-		super(Schedule, self).__init__(schedule_line)
 
+
+class ScheduleDatetime(object):
+	datetime = -1
+	date_only = None
 	def has_date_only(self):
 		if self.datetime == -1:
 			self.get_datetime()
@@ -112,5 +123,42 @@ class Schedule(ScheduleBase, ScheduleRepeater, ScheduleDelay):
 				self.date_only = True
 		return self.datetime
 
+	def set_datetime(self, new_datetime, date_only=False):
+		if not isinstance(new_datetime, datetime.datetime):
+			return False
+		self.datetime = new_datetime
+		self.date_only = date_only
+		return True
+		
+	def get_date(self):
+		if self.datetime == -1:
+			self.get_datetime()
+		if self.datetime == None:
+			return None
+		return datetime.date(self.datetime.year, self.datetime.month, self.datetime.day)
+	
+class Schedule(ScheduleBase, ScheduleRepeater, ScheduleDelay, ScheduleDatetime):
+	keyword = "SCHEDULED"
+	
+	def __init__(self, schedule_line):
+		super(Schedule, self).__init__(schedule_line)
+
+	def get_string(self):
+		if self.datetime == -1:
+			self.get_datetime()
+		if not self.datetime:
+			return ""
+		if self.has_date_only():
+			result = "%s: <%s" % (self.keyword, self.datetime.strftime("%Y-%m-%d %a"))
+		else:
+			result = "%s: <%s" % (self.keyword, self.datetime.strftime("%Y-%m-%d %a %H:%M"))		
+		if self.has_delay():
+			result += " %s" % self.get_delay()
+		if self.has_repeater():
+			result += " %s" % self.get_repeater()
+			
+		result += ">"
+		return result
+		
 class Deadline(Schedule):
 	keyword = "DEADLINE"
