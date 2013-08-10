@@ -13,7 +13,7 @@ class HeaderTags(object):
 		
 	def get_tags(self):
 		if self.tags == None:
-			if re.compile(".{0,}( |\t):[a-zA-Z0-9\:]*:$").match(self.line):
+			if re.compile(".{0,}( {1,5}|\t):[a-zA-Z0-9\:]*:$").match(self.line):
 				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*):$", "\g<tags>", self.line)
 				self.tags = tag_string[1:].split(":")
 			else:
