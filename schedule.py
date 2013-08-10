@@ -101,7 +101,6 @@ class ScheduleDelay(object):
 			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", self.delay)
 		return (interval, unit)
 
-
 class ScheduleDatetime(object):
 	datetime = -1
 	date_only = None
