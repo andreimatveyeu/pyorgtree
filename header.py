@@ -4,52 +4,44 @@ import os
 import cPickle
 from tree import *
 
-class Header(object):
-	line = None
-	title = None
-
-	def __init__(self, line):
-		self.line = line.strip()
-
-	def get_level(self):
-		level = 0
-		for char in self.line:
-			if char == "*":
-				level += 1
-			else:
-				break
-		return level
-
+class HeaderTags(object):
+	tags = None
 	def has_tags(self):
-		patterns = []
-		patterns.append(re.compile(".{0,}:[a-zA-Z0-9\:]{1,}:$"))
-		for pattern in patterns:
-			if pattern.match(self.line):
-				return True
-		return False
-
+		if self.tags == None:
+			self.get_tags()
+		return len(self.tags) > 0
+		
 	def get_tags(self):
-		if self.has_tags():
-			tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*:)$", "\g<tags>", self.line)
-			return tag_string[1:-1].split(":")
-		return []
+		if self.tags == None:
+			if re.compile(".{0,}( |\t):[a-zA-Z0-9\:]*:$").match(self.line):
+				tag_string = re.sub(".{0,}( |\t)(?P<tags>:[a-zA-Z0-9\:]*):$", "\g<tags>", self.line)
+				self.tags = tag_string[1:].split(":")
+			else:
+				self.tags = []
+		return self.tags
 
+class HeaderPriority(object):
+	priority = "NA"
+	
 	def has_priority(self):
-		patterns = []
-		patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
-		patterns.append(re.compile("\*{1,} \[[#][A-Z]\] "))
-		for pattern in patterns:
-			if pattern.match(self.line):
-				return True
-		return False
+		if self.priority == "NA":
+			self.get_priority()
+		return self.priority != None
 
 	def get_priority(self):
-		if self.has_priority():
-			prio = re.sub(".{1,} (?P<prio>\[#[A-Z]\]) .{0,}", "\g<prio>", self.line)
-			return prio[2:3]
-		else:
-			return None
+		if self.priority == "NA":
+			patterns = []
+			patterns.append(re.compile("\*{1,} [A-Z]{3,5} \[\#[A-Z]\] "))
+			patterns.append(re.compile("\*{1,} \[[#][A-Z]\] "))
+			self.priority = None
+			for pattern in patterns:
+				if pattern.match(self.line):
+					prio = re.sub(".{1,} (?P<prio>\[#[A-Z]\]) .{0,}", "\g<prio>", self.line)
+					self.priority = prio[2:3]
+					break
+		return self.priority
 
+class HeaderType(object):
 	def has_type(self):
 		patterns = []
 		patterns.append(re.compile("\*{1,} [A-Z]{3,5} ")) 
@@ -65,6 +57,7 @@ class Header(object):
 		else:
 			return None
 
+class HeaderTimestamp(object):
 	def has_timestamp(self):
 		patterns = []
 		patterns.append(re.compile("\*{1,} ([A-Z]{3,5} |.{0,})\[[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] .{3}( [0-2][0-9]:[0-5][0-9]|.{0,})\]($|.{0,})"))  
@@ -91,6 +84,24 @@ class Header(object):
 				return time_string
 		else:
 			return None
+
+	
+class Header(HeaderTags, HeaderPriority, HeaderType, HeaderTimestamp):
+	line = None
+	title = None
+	level = None
+	
+	def __init__(self, line):
+		self.line = line.strip()
+		self.level = 0
+		for char in self.line:
+			if char == "*":
+				self.level += 1
+			else:
+				break
+
+	def get_level(self):
+		return self.level
 
 	def get_title(self):
 		if self.title == None:
