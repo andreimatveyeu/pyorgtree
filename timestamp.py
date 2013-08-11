@@ -62,18 +62,45 @@ class DateStamp(Timestamp):
 			day = int(self.string[9:11])
 			self.date = datetime.date(year, month, day)
 		return self.date
-				
-class DatetimeStamp(Timestamp):
+
+class DatetimeStampDuration(object):
 	duration_present = None
-	def __init__(self):
-		pass
-	def has_duration(self, string):
+	
+	def has_duration(self):
 		if self.duration_present == None:
 			self.duration_present = False
 			duration_pattern = re.compile(".{1,} [0-2][0-9]:[0-5][0-9]-[0-2][0-9]:[0-5][0-9].{1,}")
 			if duration_pattern.match(self.string):
 				self.duration_present = True
 		return self.duration_present
+		
+	def get_start_datetime(self):
+		if self.has_duration():
+			date = self.get_date()
+			time_string = re.sub(".{1,} (?P<time>[0-2][0-9]:[0-5][0-9])-", "\g<time>", self.string)
+			hour = int(time_string[0:2])
+			minute = int(time_string[3:5])
+			return datetime.datetime(date.year, date.month, date.day, hour, minute)
+		else:
+			return None
+
+	def get_end_datetime(self):
+		if self.has_duration():
+			date = self.get_date()
+			time_string = re.sub(".{1,}-(?P<time>[0-2][0-9]:[0-5][0-9])", "\g<time>", self.string)
+			hour = int(time_string[0:2])
+			minute = int(time_string[3:5])
+			return datetime.datetime(date.year, date.month, date.day, hour, minute)
+		return None
+		
+	def get_duration(self):
+		if self.has_duration():
+			return self.get_end_datetime() - self.get_start_datetime()
+		else:
+			return None
+				
+class DatetimeStamp(DateStamp, Timestamp, DatetimeStampDuration):
+	pass
 	
 class DatetimeRange(object):
 	from_datetime = None

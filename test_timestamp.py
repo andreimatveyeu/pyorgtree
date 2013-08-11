@@ -29,3 +29,20 @@ class TestDateStamp(object):
 		assert ds.set_active(False)
 		assert ds.get_string() == "[2013-08-12]"
 		
+class TestDatetimeStamp(object):
+	def test_duration(self):
+		stamps = [
+			"<2013-08-11 Sun 12:15-20:45>",
+			"<2013-08-11 12:15-20:45>"
+		]
+		for stamp in stamps:
+			dts = DatetimeStamp(stamp)
+			assert dts.has_weekday() or not dts.has_weekday()
+			assert dts.has_duration()
+			assert dts.get_date() == datetime.date(2013, 8, 11)
+
+	def test_duration_start_end(self):
+		dts = DatetimeStamp("[2013-08-11 Sun 12:15-13:35]")
+		assert dts.get_start_datetime() == datetime.datetime(2013, 8, 11, 12, 15)
+		assert dts.get_end_datetime() == datetime.datetime(2013, 8, 11, 13, 35)
+		assert dts.get_duration() == datetime.timedelta(minutes=80)
