@@ -2,6 +2,7 @@ from timestamp import *
 import datetime
 
 class TestTimestamp(object):
+	
 	def test_active(self):
 		t1 = DateStamp("[2013-08-11 Sun]")
 		assert not t1.is_active()
@@ -48,11 +49,14 @@ class TestDatetimeStamp(object):
 		assert dts.get_duration() == datetime.timedelta(minutes=80)
 
 class TestDateRange(object):
+	
 	def test_init(self):
 		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
 		dr = DateRange(string)
+		assert dr.is_active()
 		string = "[2013-08-11 Sun]--[2013-08-12 Mon]"
 		dr = DateRange(string)
+		assert not dr.is_active()
 
 	def test_get_duration(self):
 		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
@@ -81,8 +85,10 @@ class TestDatetimeRange(object):
 	def test_init(self):
 		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"
 		dtr = DatetimeRange(string)
+		assert dtr.is_active()
 		string = "[2013-08-11 Sun 13:00]--[2013-08-12 Mon 15:00]"
 		dtr = DatetimeRange(string)
+		assert not dtr.is_active()
 		
 	def test_get_duration(self):
 		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"

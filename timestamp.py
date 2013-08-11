@@ -206,6 +206,9 @@ class Range(object):
 
 	def __str__(self):
 		return "%s--%s" % (self.get_from(), self.get_to())
+
+	def is_active(self):
+		return self.get_from().is_active() and self.get_to().is_active()
 		
 class DateRange(Range):
 	def __init__(self, string):
