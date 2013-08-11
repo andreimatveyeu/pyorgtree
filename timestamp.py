@@ -235,17 +235,26 @@ class DatetimeStampDuration(object):
 			return None
 				
 class DatetimeStamp(DatetimeStampDuration, DateStamp, Timestamp):
+	datetime = -1
 	def __init__(self, string):
 		self.string = string
 		if not DatetimeStamp.is_valid(string):
 			raise MalformedTimestamp("Malformed datetime stamp: %s" % string)
 
 	def get_datetime(self):
-		date = self.get_date()
-		time_string = re.sub(".{1,} (?P<time>[0-2][0-9]:[0-5][0-9])", "\g<time>", self.string)
-		hour = int(time_string[0:2])
-		minute = int(time_string[3:5])
-		return datetime.datetime(date.year, date.month, date.day, hour, minute)
+		if self.datetime == -1:
+			date = self.get_date()
+			time_string = re.sub(".{1,} (?P<time>[0-2][0-9]:[0-5][0-9])", "\g<time>", self.string)
+			hour = int(time_string[0:2])
+			minute = int(time_string[3:5])
+			self.datetime = datetime.datetime(date.year, date.month, date.day, hour, minute)
+		return self.datetime
+		
+	def set_datetime(self, new_datetime):
+		if not isinstance(new_datetime, datetime.datetime):
+			return False
+		self.datetime = new_datetime
+		return True
 		
 	@staticmethod
 	def is_valid(string):
@@ -336,7 +345,7 @@ class DateRange(Range):
 	@staticmethod
 	def is_valid(string):
 		if not Range.is_valid(string):
-			raise MalformedRange("Malformed date range: %s" % string)
+			return False
 		stamps = string.split("--")
 		if not len(stamps) == 2:
 			return False

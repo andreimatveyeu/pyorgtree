@@ -23,9 +23,9 @@ class OrgTreeData(object):
 			elif properties_end.match(line):
 				break
 			elif schedule_match.match(line):
-				self.schedule = Schedule(line)
+				self.schedule = ScheduleAbstractFactory.get_schedule(line)
 			elif deadline_match.match(line):
-				self.deadline = Deadline(line)
+				self.deadline = DeadlineAbstractFactory.get_deadline(line)
 			else:
 				if properties_open:
 					if property_match.match(line):
