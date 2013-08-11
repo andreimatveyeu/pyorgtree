@@ -2,10 +2,10 @@ from timestamp import *
 import datetime
 
 class TestTimestamp(object):
-	def test_timestamp_active(self):
+	def test_active(self):
 		t1 = DateStamp("[2013-08-11 Sun]")
 		assert not t1.is_active()
-		t1 = DateStamp("<2013-08-11 Sun>")
+ 		t1 = DateStamp("<2013-08-11 Sun>")
 		assert t1.is_active()
 		
 class TestDateStamp(object):
@@ -16,7 +16,7 @@ class TestDateStamp(object):
 		assert ds.set_date(datetime.date(2013, 8, 12))
 		assert ds.get_date() == datetime.date(2013, 8, 12)
 		assert ds.set_active(True)
-		assert ds.get_string() == "<2013-08-12 Mon>"
+		assert "%s" % ds == "<2013-08-12 Mon>"
 		assert ds.has_weekday()
 
 	def test_no_weekday(self):
@@ -27,7 +27,7 @@ class TestDateStamp(object):
 		assert ds.set_date(datetime.date(2013, 8, 12))
 		assert ds.get_date() == datetime.date(2013, 8, 12)
 		assert ds.set_active(False)
-		assert ds.get_string() == "[2013-08-12]"
+		assert "%s" % ds == "[2013-08-12]"
 		
 class TestDatetimeStamp(object):
 	def test_duration(self):
@@ -46,3 +46,62 @@ class TestDatetimeStamp(object):
 		assert dts.get_start_datetime() == datetime.datetime(2013, 8, 11, 12, 15)
 		assert dts.get_end_datetime() == datetime.datetime(2013, 8, 11, 13, 35)
 		assert dts.get_duration() == datetime.timedelta(minutes=80)
+
+class TestDateRange(object):
+	def test_init(self):
+		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
+		dr = DateRange(string)
+		string = "[2013-08-11 Sun]--[2013-08-12 Mon]"
+		dr = DateRange(string)
+
+	def test_get_duration(self):
+		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
+		dr = DateRange(string)
+		assert dr.get_duration() == datetime.timedelta(days=1)
+
+	def test_string(self):
+		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
+		dr = DateRange(string)
+		assert "%s" % dr == string
+
+	def test_set(self):
+		string = "<2013-08-11 Sun>--<2013-08-12 Mon>"
+		dr = DateRange(string)
+		
+		dr.set_from(DateStamp("<2013-08-10 Sat>"))
+		assert "%s" % dr == "<2013-08-10 Sat>--<2013-08-12 Mon>"
+		assert dr.get_duration() == datetime.timedelta(days=2)
+		
+		dr.set_to(DateStamp("<2013-08-13 Tue>"))
+		assert "%s" % dr == "<2013-08-10 Sat>--<2013-08-13 Tue>"
+		assert dr.get_duration() == datetime.timedelta(days=3)
+		
+class TestDatetimeRange(object):
+	
+	def test_init(self):
+		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"
+		dtr = DatetimeRange(string)
+		string = "[2013-08-11 Sun 13:00]--[2013-08-12 Mon 15:00]"
+		dtr = DatetimeRange(string)
+		
+	def test_get_duration(self):
+		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"
+		dtr = DatetimeRange(string)
+		assert dtr.get_duration() == datetime.timedelta(days=1, hours=2)
+
+	def test_string(self):
+		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"
+		dtr = DatetimeRange(string)
+		assert "%s" % dtr == string
+
+	def test_set(self):
+		string = "<2013-08-11 Sun 13:00>--<2013-08-12 Mon 15:00>"
+		dtr = DatetimeRange(string)
+		
+		dtr.set_from(DatetimeStamp("<2013-08-10 Sat 15:00>"))
+		assert "%s" % dtr == "<2013-08-10 Sat 15:00>--<2013-08-12 Mon 15:00>"
+		assert dtr.get_duration() == datetime.timedelta(days=2)
+		
+		dtr.set_to(DatetimeStamp("<2013-08-13 Tue 16:00>"))
+		assert "%s" % dtr == "<2013-08-10 Sat 15:00>--<2013-08-13 Tue 16:00>"
+		assert dtr.get_duration() == datetime.timedelta(days=3, hours=1)
