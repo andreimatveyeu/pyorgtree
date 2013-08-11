@@ -277,7 +277,7 @@ class TestHeader(object):
 class TestTreeData(object):
 	def test_properties(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree04.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		assert tree_dict['38399'].has_properties()
@@ -292,7 +292,7 @@ class TestTreeData(object):
 
 	def test_scheduled(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree04.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		assert not tree_dict['38399'].has_schedule()
@@ -304,7 +304,7 @@ class TestTreeData(object):
 
 	def test_deadline(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree04.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree04.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		assert not tree_dict['38401'].has_deadline()
@@ -485,7 +485,7 @@ class TestSchedule(object):
 class TestOrgTree(object):
 	def test_read_from_file(self):
 		tree = OrgTree()
-		tree.read_from_file('test_data/tree00.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree00.org', 0, 0)
 		assert tree[1][0].get_header().get_title() == "Lorem ipsum dolor sit amet"
 		assert len(tree[1][0].get_children()) == 3
 		assert tree[1][1].get_header().get_title() == "interdum in, laoreet ut nisl"
@@ -515,7 +515,7 @@ class TestHashedOrgTree(object):
 
 	def test_parse(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree01.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree01.org', 0, 0)
 
 		log(1, "Verify that first child hashes match")
 		assert tree.get_children()[0].get_header().get_hash() == '12345'
@@ -541,7 +541,7 @@ class TestHashedOrgTree(object):
 
 	def test_serialize(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree01.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree01.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		_, self._temp_file = tempfile.mkstemp()
@@ -560,7 +560,7 @@ class TestHashedOrgTree(object):
 
 	def test_multiple(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree02.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree02.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		assert len(tree.get_children()) == 2
@@ -569,7 +569,7 @@ class TestHashedOrgTree(object):
 
 	def test_tags(self):
 		tree = HashedOrgTree()
-		tree.read_from_file('test_data/tree03.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree03.org', 0, 0)
 		tree_dict = tree.get_tree_dict()
 
 		tag1_trees = tree.get_trees_by_tag('tag1')
@@ -596,18 +596,18 @@ class TestTreeWriter(object):
 
 	def test_write_read_simple(self):
 		tree = OrgTree()
-		tree.read_from_file('test_data/tree05.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree05.org', 0, 0)
 		_, self._temp_file = tempfile.mkstemp()
 		tree.write_to_file(self._temp_file)
-		original_file = open('test_data/tree05.org', 'r').read()
+		original_file = open('unittests/test_data/tree05.org', 'r').read()
 		written_file = open(self._temp_file, 'r').read()
 		assert written_file == original_file
 
 	def test_write_tree(self):
 		tree = OrgTree()
-		tree.read_from_file('test_data/tree06.org', 0, 0)
+		tree.read_from_file('unittests/test_data/tree06.org', 0, 0)
 		_, self._temp_file = tempfile.mkstemp()
 		tree.write_to_file(self._temp_file)
-		original_file = open('test_data/tree06.org', 'r').read()
+		original_file = open('unittests/test_data/tree06.org', 'r').read()
 		written_file = open(self._temp_file, 'r').read()
 		assert written_file == original_file
