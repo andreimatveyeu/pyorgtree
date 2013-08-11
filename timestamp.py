@@ -1,5 +1,6 @@
 import re 
 import datetime
+import sys
 
 class MalformedTimestamp(Exception):
 	def __init__(self, message):
@@ -10,11 +11,22 @@ class Timestamp(object):
 	active = None
 
 	def __init__(self, string):
-		pattern = re.compile("^[\[\<].{1,}[\]\>]$")
-		if not pattern.match(string):
+		if not self.is_valid(string):
 			raise MalformedTimestamp("Malformed timestamp: %s" % string)
 		self.string = string
-
+		
+	@staticmethod
+	def is_valid(string):
+		pattern = re.compile("^[\[\<].{1,}[\]\>]$")
+		if not pattern.match(string):
+			sys.stderr.write("A timestamp shall be bounded by <> or []")
+			return False
+		pattern = re.compile("^[\[\<][0-9][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9].*[\]\>]$")
+		if not pattern.match(string):
+			sys.stderr.write("The pattern shall start with YYYY-mm-dd")
+			return False
+		return True
+		
 	def is_active(self):
 		if self.active == None:
 			self.active = False
