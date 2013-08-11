@@ -111,3 +111,20 @@ class TestDatetimeRange(object):
 		dtr.set_to(DatetimeStamp("<2013-08-13 Tue 16:00>"))
 		assert "%s" % dtr == "<2013-08-10 Sat 15:00>--<2013-08-13 Tue 16:00>"
 		assert dtr.get_duration() == datetime.timedelta(days=3, hours=1)
+
+class TestRepeater(object):
+	def test_repeater(self):
+		string = "<2013-08-11 Sun 13:00 +1d>"
+		dts = DatetimeStamp(string)
+		assert dts.has_repeater()
+		
+		string = "<2013-08-11 Sun 13:00 ++1d>"
+		dts = DatetimeStamp(string)
+		assert dts.has_repeater()
+		
+	def test_set_repeater(self):
+		string = "<2013-08-11 Sun 13:00 +1d>"
+		dts = DatetimeStamp(string)
+		assert dts.set_repeater("+5m")
+		assert dts.get_repeater() == "+5m"
+		assert "%s" % dts == "<2013-08-11 Sun 13:00 +5m>"

@@ -70,8 +70,89 @@ class Timestamp(object):
 		"""
 		pattern = re.compile(".{1,}[0-9] [A-Z][a-z][a-z]")
 		return pattern.match(self.string) != None
+
+class TimestampRepeater(object):
+	repeater = -1
+	repeat_interval = None
+	
+	def _extract_repeater(self, line):
+		repeater = re.sub(".{1,} (?P<repeater>[\+]{1,2}[0-9]{1,4}[dwmy]).{1,}", "\g<repeater>", line)
+		return repeater
+	
+	def has_repeater(self):
+		if self.repeater == -1:
+			self.get_repeater()
+		return self.repeater != None
+				
+	def get_repeater(self):
+		if self.repeater == -1:
+			self.repeater = None
+			schedule_repeater_pattern = re.compile(".{1,} [\+]{1,2}[0-9]{1,4}[dwmy]")
+			if schedule_repeater_pattern.match(self.string):
+				self.repeater = self._extract_repeater(self.string)
+		return self.repeater
 		
-class DateStamp(Timestamp):
+	def set_repeater(self, new_repeater):
+		schedule_repeater_pattern = re.compile("^[\+]{1,2}[0-9]{1,4}[dwmy]$")
+		if not schedule_repeater_pattern.match(new_repeater):
+			return False
+		self.repeater = new_repeater
+		return True
+		
+	def has_overdue_repeater(self):
+		if self.has_repeater():
+			if re.compile("\+[0-9]").match(self.get_repeater()):
+				return True
+			else:
+				return False
+		else:
+			return False
+		
+	def get_repeat_interval(self):
+		if self.repeat_interval == None and self.has_repeater():
+			repeater = self.get_repeater()
+			interval = re.sub("\+{1,2}(?P<num>[0-9]{1,4}).{1,}", "\g<num>", repeater)
+			interval = int(interval)
+			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", repeater)
+			return (interval, unit)
+		else:
+			return None
+
+class TimestampDelay(object):
+	delay = -1
+	
+	def _extract_delay(self, line):
+		delay = re.sub(".{1,} (?P<repeater>[\-]{1,2}[0-9]{1,4}[dwmy]).{1,}", "\g<repeater>", line)
+		return delay
+		
+	def has_delay(self):
+		if self.delay == -1:
+			self.get_delay()
+		return self.delay != None
+		
+	def get_delay(self):
+		if self.delay == -1:
+			schedule_delay_pattern = re.compile(".{1,} [\-]{1,2}[0-9]{1,4}[dwmy]")
+			self.delay = None
+			if schedule_delay_pattern.match("%s" % self):
+				self.delay = self._extract_delay("%s" % self)
+		return self.delay
+		
+	def set_delay(self, new_delay):
+		schedule_delay_pattern = re.compile("^[\-]{1,2}[0-9]{1,4}[dwmy]$")
+		if not schedule_delay_pattern.match(new_delay):
+			return False
+		self.delay = new_delay
+		return True
+		
+	def get_delay_interval(self):
+		if self.has_delay():
+			interval = re.sub("[-]{1,2}(?P<num>[0-9]{1,4}).{1,}", "\g<num>", self.delay)
+			interval = int(interval)
+			unit = re.sub(".{1,}(?P<unit>[dwmy])", "\g<unit>", self.delay)
+		return (interval, unit)
+
+class DateStamp(Timestamp, TimestampRepeater, TimestampDelay):
 	date = None
 	def __init__(self, string):
 		self.string = string
@@ -157,11 +238,28 @@ class DatetimeStamp(DatetimeStampDuration, DateStamp, Timestamp):
 	def is_valid(string):
 		if not Timestamp.is_valid(string):
 			return False
-		pattern = re.compile(".{5}-.{2}-.{2}( [A-Z][a-z]{2}|.{0}) [0-2][0-9]:[0-5][0-9](.$|-[0-2][0-9]:[0-5][0-9].$)")
+		pattern = re.compile(".{5}-.{2}-.{2}( [A-Z][a-z]{2}|.{0}) [0-2][0-9]:[0-5][0-9](.{0}|-[0-2][0-9]:[0-5][0-9])")
 		if not pattern.match(string):
 			return False
 		return True
 		
+	def __str__(self):
+		pattern = "%Y-%m-%d"
+		if self.has_weekday():
+			pattern += " %a"
+		pattern += " %H:%M"
+		result = self.get_datetime().strftime(pattern)
+		if self.has_duration():
+			end_time = self.get_end_datetime().strftime("-%H-%M")
+			result += end_time
+		if self.has_repeater():
+			result += " %s" % self.get_repeater()
+		if self.is_active():
+			result = "<" + result + ">"
+		else:
+			result = "[" + result + "]"
+		return result
+			
 	def __sub__(self, other):
 		return self.get_datetime() - other.get_datetime()
 
