@@ -80,9 +80,7 @@ class TimestampRepeater(object):
 		return repeater
 	
 	def has_repeater(self):
-		if self.repeater == -1:
-			self.get_repeater()
-		return self.repeater != None
+		return self.get_repeater() != None
 				
 	def get_repeater(self):
 		if self.repeater == -1:
@@ -134,8 +132,8 @@ class TimestampDelay(object):
 		if self.delay == -1:
 			schedule_delay_pattern = re.compile(".{1,} [\-]{1,2}[0-9]{1,4}[dwmy]")
 			self.delay = None
-			if schedule_delay_pattern.match("%s" % self):
-				self.delay = self._extract_delay("%s" % self)
+			if schedule_delay_pattern.match(self.string):
+				self.delay = self._extract_delay(self.string)
 		return self.delay
 		
 	def set_delay(self, new_delay):
@@ -163,7 +161,7 @@ class DateStamp(Timestamp, TimestampRepeater, TimestampDelay):
 	def is_valid(string):
 		if not Timestamp.is_valid(string):
 			return False
-		pattern = re.compile("^.....-..-..( [A-Z][a-z]{2}|.{0}).$")
+		pattern = re.compile("^.....-..-..( [A-Z][a-z]{2}|.{0})")
 		if not pattern.match(string):
 			return False
 		return True
@@ -187,6 +185,21 @@ class DateStamp(Timestamp, TimestampRepeater, TimestampDelay):
 		return self.date
 	def __sub__(self, other):
 		return self.get_date() - other.get_date()
+		
+	def __str__(self):
+		pattern = "%Y-%m-%d"
+		if self.has_weekday():
+			pattern += " %a"
+		result = self.get_date().strftime(pattern)
+		if self.has_delay():
+			result += " %s" % self.get_delay()
+		if self.has_repeater():
+			result += " %s" % self.get_repeater()
+		if self.is_active():
+			result = "<" + result + ">"
+		else:
+			result = "[" + result + "]"
+		return result
 		
 class DatetimeStampDuration(object):
 	duration_present = None
@@ -252,6 +265,8 @@ class DatetimeStamp(DatetimeStampDuration, DateStamp, Timestamp):
 		if self.has_duration():
 			end_time = self.get_end_datetime().strftime("-%H-%M")
 			result += end_time
+		if self.has_delay():
+			result += " %s" % self.get_delay()
 		if self.has_repeater():
 			result += " %s" % self.get_repeater()
 		if self.is_active():
@@ -271,6 +286,14 @@ class Range(object):
 	string = None
 	from_timestamp = None
 	to_timestamp = None
+	
+	@staticmethod
+	def is_valid(string):
+		pattern = re.compile("^.{1,}--.{1,}$")
+		if not pattern.match(string):
+			return False
+		return True
+		
 	def __init__(self, string):
 		self.string = string
 		
@@ -290,13 +313,6 @@ class Range(object):
 		if not isinstance(fr, Timestamp):
 			return False
 		self.from_timestamp = fr
-		return True
-		
-	@staticmethod
-	def is_valid(string):
-		pattern = re.compile("^.{1,}--.{1,}$")
-		if not pattern.match(string):
-			return False
 		return True
 		
 	def get_duration(self):
@@ -326,6 +342,9 @@ class DateRange(Range):
 			return False
 		for stamp in stamps:
 			if not DateStamp.is_valid(stamp):
+				return False
+			ds = DateStamp(stamp)
+			if ds.has_repeater() or ds.has_delay():
 				return False		
 		return True
 		
@@ -348,5 +367,8 @@ class DatetimeRange(Range):
 			return False
 		for stamp in stamps:
 			if not DatetimeStamp.is_valid(stamp):
+				return False
+			dts = DatetimeStamp(stamp)
+			if dts.has_repeater() or dts.has_delay():
 				return False		
 		return True

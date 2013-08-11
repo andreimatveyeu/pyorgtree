@@ -128,3 +128,30 @@ class TestRepeater(object):
 		assert dts.set_repeater("+5m")
 		assert dts.get_repeater() == "+5m"
 		assert "%s" % dts == "<2013-08-11 Sun 13:00 +5m>"
+
+class TestDelay(object):
+	def test_delay(self):
+		string = "<2013-08-11 Sun 13:00 -1d>"
+		dts = DatetimeStamp(string)
+		assert dts.has_delay()
+	
+		string = "<2013-08-11 Sun 13:00 --1d>"
+		dts = DatetimeStamp(string)
+		assert dts.has_delay()
+
+	def test_set_repeater(self):
+		string = "<2013-08-11 Sun 13:00 -1d>"
+		dts = DatetimeStamp(string)
+		assert dts.set_delay("-5m")
+		assert dts.get_delay() == "-5m"
+		assert "%s" % dts == "<2013-08-11 Sun 13:00 -5m>"
+		
+class TestDelayRepeater(object):
+	def test_delay_repeater(self):
+		string = "<2013-08-11 Sun -1d +5d>"
+		ds = DateStamp(string)
+		assert ds.has_delay()
+		assert ds.get_delay() == "-1d"
+		assert ds.has_repeater()
+		assert ds.get_repeater() == "+5d"
+		assert ds.get_date() == datetime.date(2013, 8, 11)
