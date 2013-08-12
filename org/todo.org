@@ -64,7 +64,6 @@ http://orgmode.org/manual/Timestamps.html
 
 
 
-
 * DONE support for duration in schedules
 
 <2006-11-02 Thu 20:00-22:00>
