@@ -1,4 +1,4 @@
-from pyorgtree.drawer import *
+from drawer import *
 import os
 
 class TestDrawer(object):
@@ -6,4 +6,4 @@ class TestDrawer(object):
 		drawer = Drawer("LOGBOOK")
 		data = "Lorem ipsum"
 		drawer.set_data(data)
-		assert drawer.get_data() == ":LOGBOOK:%s%s%s:END:" % (os.linesep, data, os.linesep)
+		assert "%s" % drawer == ":LOGBOOK:%s%s%s:END:" % (os.linesep, data, os.linesep)

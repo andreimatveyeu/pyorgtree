@@ -6,32 +6,46 @@ class OrgTreeData(object):
 	properties_dict = None
 	schedule = None
 	deadline = None
-
+	drawers = []
 	def __init__(self, data):
 		self.data = data
 		properties_start = re.compile(".{0,}:PROPERTIES:")
 		properties_end = re.compile(".{0,}:END:")
+		drawer_end = re.compile(".{0,}:END:")
 		lines = self.data.split('\n')
-		properties_open = False
 		property_match = re.compile(".{0,}:[a-zA-Z0-9]{1,100}:")
+		drawer_match = re.compile(".{0,}:[A-Z0-9]{1,100}:")
 		schedule_match = re.compile(".{0,}SCHEDULED: .{1,}$")
 		deadline_match = re.compile(".{0,}DEADLINE: .{1,}$")
 		self.properties_dict = dict()
+		properties_open = False
+		drawer_open = False
 		for line in lines:
-			if properties_start.match(line):
+			if not properties_open and properties_start.match(line):
 				properties_open = True
-			elif properties_end.match(line):
-				break
+				drawer_open = False
+			elif properties_open and properties_end.match(line):
+				properties_open = False
+			elif drawer_open and drawer_end.match(line):
+				drawer_open = False
 			elif schedule_match.match(line):
 				self.schedule = ScheduleAbstractFactory.get_schedule(line)
 			elif deadline_match.match(line):
 				self.deadline = DeadlineAbstractFactory.get_deadline(line)
+			elif not properties_open and drawer_match.match(line):
+				properties_open = False
+				drawer_name = re.sub('.{0,}:(?P<name>[A-Z0-9]):', '\g<name>', line)
+				self.drawers.append(Drawer(drawer_name))
+				drawer_open = True
 			else:
 				if properties_open:
 					if property_match.match(line):
 						prop = re.sub(".{0,}:(?P<prop>[a-zA-Z0-9]{1,100}):.{0,}$", "\g<prop>", line)
 						value = re.sub(".*:(?P<val>.{1,})$", "\g<val>", line).strip()
 						self.properties_dict[prop] = value
+				elif drawer_open:
+					data = self.drawers[-1].get_data()
+					self.drawers[-1].set_data(data + line)
 
 	def get_data(self):
 		return self.data
