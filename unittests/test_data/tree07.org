@@ -1,0 +1,22 @@
+* Tree 01
+
+   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec eget
+   suscipit elit. Curabitur quis enim ligula. Praesent nec odio
+   dui. Donec et urna vestibulum, cursus tellus eu, fermentum
+   dolor. Nulla tincidunt elit id egestas tristique. Donec vitae feugiat
+   augue, nec tempus purus. Integer elit diam, pellentesque sed lacinia
+   nec, auctor tincidunt augue. Ut dignissim arcu turpis, id malesuada
+   purus scelerisque quis. Sed egestas lacus non interdum
+   blandit. Curabitur scelerisque ornare nunc vel luctus. Nam a erat ut
+   massa pellentesque laoreet et tristique enim. Proin nisi eros, dapibus
+   a tellus at, placerat laoreet metus. Suspendisse sodales orci enim,
+   sit amet scelerisque ante sagittis id. Suspendisse eleifend tellus
+   scelerisque libero rhoncus bibendum. Maecenas nec pretium ante.
+
+:LOGBOOK1:
+logbook data 1
+:END:
+
+:LOGBOOK2:
+logbook data 2
+:END:
