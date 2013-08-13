@@ -6,7 +6,7 @@ class Drawer(object):
 	
 	def __init__(self, name):
 		self.name = name
-		
+		self.data = ""		
 	def __str__(self):
 		return ":%s:%s%s%s:END:" % (self.name, os.linesep, self.data, os.linesep)
 

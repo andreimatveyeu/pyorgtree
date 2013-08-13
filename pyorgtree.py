@@ -85,7 +85,7 @@ class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
 	def get_data(self):
 		if self.data == None:
 			self.data = OrgTreeData(self.raw_data)
-		return self.data.get_data()
+		return self.data
 
 	def has_schedule(self):
 		if self.data == None:

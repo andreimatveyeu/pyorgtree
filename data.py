@@ -1,5 +1,6 @@
 import re
 from schedule import *
+from drawer import *
 
 class OrgTreeData(object):
 	data = None
@@ -34,7 +35,7 @@ class OrgTreeData(object):
 				self.deadline = DeadlineAbstractFactory.get_deadline(line)
 			elif not properties_open and drawer_match.match(line):
 				properties_open = False
-				drawer_name = re.sub('.{0,}:(?P<name>[A-Z0-9]):', '\g<name>', line)
+				drawer_name = re.sub('.*:(?P<name>[A-Z0-9]{1,}):*$', '\g<name>', line)
 				self.drawers.append(Drawer(drawer_name))
 				drawer_open = True
 			else:
@@ -44,9 +45,12 @@ class OrgTreeData(object):
 						value = re.sub(".*:(?P<val>.{1,})$", "\g<val>", line).strip()
 						self.properties_dict[prop] = value
 				elif drawer_open:
-					data = self.drawers[-1].get_data()
-					self.drawers[-1].set_data(data + line)
+					drawer_data = self.drawers[-1].get_data()
+					self.drawers[-1].set_data(drawer_data + line)
 
+	def get_drawers(self):
+		return self.drawers
+		
 	def get_data(self):
 		return self.data
 
