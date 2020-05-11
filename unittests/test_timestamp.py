@@ -1,4 +1,4 @@
-from timestamp import *
+from ..timestamp import *
 import datetime
 
 class TestTimestamp(object):
@@ -6,7 +6,7 @@ class TestTimestamp(object):
 	def test_active(self):
 		t1 = DateStamp("[2013-08-11 Sun]")
 		assert not t1.is_active()
- 		t1 = DateStamp("<2013-08-11 Sun>")
+		t1 = DateStamp("<2013-08-11 Sun>")
 		assert t1.is_active()
 		
 class TestDateStamp(object):

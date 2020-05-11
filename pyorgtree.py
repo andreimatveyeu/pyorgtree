@@ -2,13 +2,15 @@
 import re
 import datetime
 import os
-import cPickle
-from tree import *
-from header import *
-from schedule import *
-from data import *
+import pickle
+from .tree import *
+from .header import *
+from .schedule import *
+from .data import *
+
 
 class OrgTreeReader(object):
+
 	def read_from_file(self, filename, line_number, level, tag_dict=None):
 		if tag_dict:
 			self.tag_dict = tag_dict
@@ -57,7 +59,8 @@ class OrgTreeWriter(object):
 			out.write(os.linesep)
 			out.write(item.get_data())
 		out.close()
-			
+
+
 class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
 	level = 0
 	tree_type = None
@@ -110,7 +113,7 @@ class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
 			self.data = OrgTreeData(self.raw_data)
 		if self.properties == None:
 			self.properties = self.data.get_properties()
-		return len(self.properties.keys()) > 0
+		return len(list(self.properties.keys())) > 0
 
 	def get_properties(self):
 		if self.data == None:
@@ -122,11 +125,13 @@ class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
 	def __str__(self):
 		return "OrgTree(level=%d; title=%s)" % (self.level, self.header.get_title())
 
+
 class PickleSerializableOrgTree():
+
 	def pickle_load(self, filename):
 		try:
 			inp = open(filename, 'rb')
-			self = cPickle.load(inp)
+			self = pickle.load(inp)
 			inp.close()
 			return True
 		except IOError:
@@ -135,17 +140,21 @@ class PickleSerializableOrgTree():
 	def pickle_dump(self, filename):
 		try:
 			out = open(filename, 'wb')
-			cPickle.dump(self, out)
+			pickle.dump(self, out)
 			out.close()
 			return True
 		except IOError:
 			return False
 
+
 class PlainSerializableOrgTree():
+
 	def to_string(self):
 		return ""
 
+
 class HashedOrgTreeReader(object):
+
 	def read_from_file(self, filename, line_number, level, tree_dict=None, tag_dict=None):
 		if tree_dict:
 			self.tree_dict = tree_dict
@@ -184,7 +193,8 @@ class HashedOrgTreeReader(object):
 			else:
 			   self.raw_data += line
 			   i += 1
-	
+
+
 class HashedOrgTree(HashedOrgTreeReader, OrgTree, PickleSerializableOrgTree, PlainSerializableOrgTree):
 	tree_dict = dict()
 	def __init__(self):

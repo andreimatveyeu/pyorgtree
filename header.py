@@ -1,8 +1,8 @@
 import re
 import datetime
 import os
-import cPickle
-from tree import *
+import pickle
+from .tree import *
 
 class HeaderTags(object):
 	tags = None

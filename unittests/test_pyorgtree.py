@@ -1,5 +1,5 @@
-#!/usr/bin/python
-from pyorgtree import *
+#!/usr/bin/env python
+from ..pyorgtree import *
 import tempfile
 import os
 import datetime
@@ -256,7 +256,7 @@ class TestHeader(object):
 		"** TODO [2013-08-10 Sat 11:51] [#A] title test header6" : "** TODO [2013-08-10 Sat 11:51] [#A] title test header6",
 		"** TODO [#A] [2013-08-10 Sat 11:51] title test header7 :tag1:tag2:tag3:" : "** TODO [#A] [2013-08-10 Sat 11:51] title test header7 :tag1:tag2:tag3:"
 		}
-		for key, value in headers.items():
+		for key, value in list(headers.items()):
 			header = Header(key)
 			assert header.get_string() == value
 
@@ -270,7 +270,7 @@ class TestHeader(object):
 		"** TODO [2013-08-10 Sat 11:51] [#A] ccccc: title test header6" : "** TODO [2013-08-10 Sat 11:51] [#A] ccccc: title test header6",
 		"** TODO [#A] [2013-08-10 Sat 11:51] c1234: title test header7 :tag1:tag2:tag3:" : "** TODO [#A] [2013-08-10 Sat 11:51] c1234: title test header7 :tag1:tag2:tag3:"
 		}
-		for key, value in headers.items():
+		for key, value in list(headers.items()):
 			header = HashedHeader(key)
 			assert header.get_string() == value
 			
@@ -282,13 +282,13 @@ class TestTreeData(object):
 
 		assert tree_dict['38399'].has_properties()
 		prop_dict = tree_dict['38399'].get_properties()
-		assert len(prop_dict.keys()) == 2
+		assert len(list(prop_dict.keys())) == 2
 		assert prop_dict['property1'] == 'value1'
 		assert prop_dict['property2'] == 'value2'
 
 		assert not tree_dict['38400'].has_properties()
 		prop_dict = tree_dict['38400'].get_properties()
-		assert len(prop_dict.keys()) == 0
+		assert len(list(prop_dict.keys())) == 0
 
 	def test_scheduled(self):
 		tree = HashedOrgTree()
@@ -522,7 +522,7 @@ class TestHashedOrgTree(object):
 
 		log(1, "Verify that first child is present in the tree hash map")
 		tree_dict = tree.get_tree_dict()
-		assert '12345' in tree_dict.keys()
+		assert '12345' in list(tree_dict.keys())
 
 		log(1, "Verify that first child has children")
 		children = tree_dict['12345'].get_children()
@@ -551,8 +551,8 @@ class TestHashedOrgTree(object):
 		log(1, "Loading tree from file: %s" % self._temp_file)
 		new_tree = HashedOrgTree()
 		new_tree.pickle_load(self._temp_file)
-		assert tree.get_tree_dict().keys() == new_tree.get_tree_dict().keys()
-		for tree_hash in tree.get_tree_dict().keys():
+		assert list(tree.get_tree_dict().keys()) == list(new_tree.get_tree_dict().keys())
+		for tree_hash in list(tree.get_tree_dict().keys()):
 			log(1, "Comparing trees: %s " % tree_hash)
 			new_tree_dict = new_tree.get_tree_dict()
 			assert new_tree_dict[tree_hash].get_data() == tree_dict[tree_hash].get_data()

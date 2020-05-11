@@ -1,8 +1,8 @@
 import re
 import datetime
 import os
-import cPickle
-from timestamp import *
+import pickle
+from .timestamp import *
 
 class Schedule(object):
 	keyword = "SCHEDULED"

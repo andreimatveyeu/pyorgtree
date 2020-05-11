@@ -1,5 +1,5 @@
 import re
-from schedule import *
+from .schedule import *
 
 class OrgTreeData(object):
 	data = None
@@ -37,7 +37,7 @@ class OrgTreeData(object):
 		return self.data
 
 	def has_properties(self):
-		return len(self.properties_dict.keys()) > 0
+		return len(list(self.properties_dict.keys())) > 0
 
 	def get_properties(self):
 		return self.properties_dict

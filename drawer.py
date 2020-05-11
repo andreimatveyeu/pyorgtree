@@ -1,3 +1,6 @@
+import os
+
+
 class Drawer(object):
 	data = None
 	name = None
@@ -12,5 +15,4 @@ class Drawer(object):
 		self.data = data
 		
 	def get_data(self):
-		return self.data
-		
+		return self.__str__()

@@ -1,4 +1,4 @@
-from tree import *
+from ..tree import *
 
 class TestTree(object):
 	def test_tree_iteration(self):
@@ -20,6 +20,6 @@ class TestTree(object):
 			if counter == 0:
 				assert item == tree
 			counter += 1
-		print counter
+		print(counter)
 		assert counter == 7
 			
