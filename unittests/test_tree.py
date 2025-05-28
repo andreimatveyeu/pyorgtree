@@ -1,4 +1,4 @@
-from ..tree import *
+from pyorgtree.tree import *
 
 class TestTree(object):
     def test_tree_iteration(self):
@@ -22,4 +22,3 @@ class TestTree(object):
             counter += 1
         print(counter)
         assert counter == 7
-            

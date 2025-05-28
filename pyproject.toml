@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyorgtree"
+version = "0.2.0"
+authors = [
+  { name="Andrei Matveyeu" },
+]
+description = "A Python package for parsing and manipulating Org-mode files."
+readme = "README.md"
+requires-python = ">=3.6"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/andreimatveyeu/pyorgtree"
+"Bug Tracker" = "https://github.com/andreimatveyeu/pyorgtree/issues"
+
+[project.scripts]
+pyorgtree = "pyorgtree.pyorgtree:main"
+
+[tool.setuptools]
+packages = ["pyorgtree"]

@@ -1,4 +1,4 @@
-from ..drawer import *
+from pyorgtree.drawer import *
 import os
 
 class TestDrawer(object):

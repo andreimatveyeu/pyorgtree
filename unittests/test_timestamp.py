@@ -1,4 +1,4 @@
-from ..timestamp import *
+from pyorgtree.timestamp import *
 import datetime
 
 class TestTimestamp(object):

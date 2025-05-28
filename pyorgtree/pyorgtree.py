@@ -62,14 +62,20 @@ class OrgTreeWriter(object):
 
 
 class OrgTree(Node, OrgTreeReader, OrgTreeWriter):
-    level = 0
-    tree_type = None
-    raw_data = ""
-    data = None
-    tag_dict = dict()
-    header = None
-    properties = None
-    
+    # level, tree_type, raw_data, data, tag_dict, header, properties
+    # are now instance variables initialized in __init__.
+
+    def __init__(self, *args, **kwargs):
+        super(OrgTree, self).__init__(*args, **kwargs)  # Call Node's __init__ or object.__init__
+        self.level = 0
+        self.tree_type = None
+        self.raw_data = ""
+        self.data = None
+        self.tag_dict = {}
+        self.header = None
+        self.properties = None
+        # Node class is expected to initialize self.children and self.parent (if applicable)
+
     def get_header(self):
         return self.header
 
@@ -130,11 +136,15 @@ class PickleSerializableOrgTree():
 
     def pickle_load(self, filename):
         try:
-            inp = open(filename, 'rb')
-            self = pickle.load(inp)
-            inp.close()
+            with open(filename, 'rb') as inp:
+                loaded_obj = pickle.load(inp)
+            # Update the current instance's dictionary with the loaded object's dictionary
+            # This ensures all instance attributes, including tree_dict and tag_dict, are restored.
+            self.__dict__.update(loaded_obj.__dict__)
             return True
-        except IOError:
+        except (IOError, pickle.UnpicklingError) as e:
+            # It's good practice to log the error or handle it more specifically if needed
+            print(f"Error during pickle_load: {e}") # Or use a proper logger
             return False
 
     def pickle_dump(self, filename):
@@ -196,9 +206,11 @@ class HashedOrgTreeReader(object):
 
 
 class HashedOrgTree(HashedOrgTreeReader, OrgTree, PickleSerializableOrgTree, PlainSerializableOrgTree):
-    tree_dict = dict()
+    # tree_dict is now an instance variable initialized in __init__.
+    # tag_dict is inherited from OrgTree and initialized as an instance variable via super().__init__().
     def __init__(self):
         super(HashedOrgTree, self).__init__()
+        self.tree_dict = {}
 
     def get_subtree_by_hash(self, subtree_hash):
         try:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from ..pyorgtree import *
+from pyorgtree.pyorgtree import *
 import tempfile
 import os
 import datetime
