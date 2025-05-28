@@ -76,6 +76,15 @@ This command will discover and run all tests located in the `unittests/` directo
 
 `pyorgtree` is currently NOT under active development. For bug reports, feature requests, or contributions, please visit the [Bug Tracker](https://github.com/andreimatveyeu/pyorgtree/issues).
 
+## Feature Ideas
+
+Here are some potential features that could enhance `pyorgtree`:
+
+*   **Advanced Node Querying:** Implement a more sophisticated query language or API to filter and retrieve nodes based on multiple criteria, such as property values, TODO states, or date ranges for scheduled/deadline timestamps.
+*   **TODO Keyword Management:** Add dedicated methods for managing TODO states, including cycling through predefined TODO sequences (e.g., `TODO` -> `IN-PROGRESS` -> `DONE`) and retrieving tasks by their current state.
+*   **Export Capabilities:** Introduce functionality to export Org-mode trees or specific subtrees to common formats like Markdown, JSON, or even a simplified HTML representation. This would increase interoperability with other tools and workflows.
+*   **Support for Org Tables:** Extend the parser to recognize and manipulate Org-mode tables, allowing for data extraction and modification within tabular structures.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
